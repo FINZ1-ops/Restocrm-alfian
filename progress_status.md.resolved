@@ -1,0 +1,115 @@
+# RESTOCRM MVP — Status Progress
+
+## ✅ Sudah Selesai (Foundation)
+
+| Komponen | File | Status |
+|---|---|---|
+| Framework CI4 | `composer.json`, struktur app | ✅ |
+| Database Config | `.env` | ✅ |
+| **16 Migrations** | `app/Database/Migrations/` | ✅ |
+| **Initial Seeder** | `app/Database/Seeds/InitialSeeder.php` | ✅ |
+| Auth Controller | `app/Controllers/Auth.php` | ✅ |
+| Auth Filter | `app/Filters/AuthFilter.php` | ✅ |
+| Role Filter | `app/Filters/RoleFilter.php` | ✅ |
+| Login View | `app/Views/auth/login.php` | ✅ |
+| Dashboard View | `app/Views/dashboard.php` | ✅ |
+| Routes | `app/Config/Routes.php` | ✅ |
+| **15 Models** | `app/Models/` | ✅ |
+| Base Config (Filters, dll) | `app/Config/Filters.php` | ⚠️ Perlu dicek |
+
+---
+
+## ❌ Belum Ada — Controllers
+
+### Super Admin
+- [ ] `app/Controllers/Admin/Leads.php`
+- [ ] `app/Controllers/Admin/SubscriptionPlans.php`
+- [ ] `app/Controllers/Admin/Restaurants.php`
+
+### Restaurant Admin
+- [ ] `app/Controllers/RestaurantAdmin/Profile.php`
+- [ ] `app/Controllers/RestaurantAdmin/MenuCategories.php`
+- [ ] `app/Controllers/RestaurantAdmin/Menus.php`
+- [ ] `app/Controllers/RestaurantAdmin/Tables.php`
+- [ ] `app/Controllers/RestaurantAdmin/Dashboard.php`
+- [ ] `app/Controllers/RestaurantAdmin/Reports.php`
+- [ ] `app/Controllers/RestaurantAdmin/Orders.php`
+- [ ] `app/Controllers/RestaurantAdmin/Customers.php`
+
+### Kitchen
+- [ ] `app/Controllers/Kitchen/Orders.php`
+
+### Cashier
+- [ ] `app/Controllers/Cashier/Orders.php`
+
+### Sales
+- [ ] `app/Controllers/Sales/Leads.php`
+- [ ] `app/Controllers/Sales/Pipeline.php`
+
+### Customer (Public)
+- [ ] `app/Controllers/Customer/Scan.php`
+- [ ] `app/Controllers/Customer/Menu.php`
+- [ ] `app/Controllers/Customer/Order.php`
+
+---
+
+## ❌ Belum Ada — Views
+
+### Admin Views
+- [ ] `views/admin/leads/` (index, create, edit, show, pipeline)
+- [ ] `views/admin/plans/` (index, create, edit)
+- [ ] `views/admin/restaurants/` (index, create, edit, show)
+
+### Restaurant Admin Views
+- [ ] `views/resto/profile/`
+- [ ] `views/resto/categories/`
+- [ ] `views/resto/menus/`
+- [ ] `views/resto/tables/` (+ QR generate)
+- [ ] `views/resto/orders/`
+- [ ] `views/resto/customers/`
+- [ ] `views/resto/reports/`
+
+### Kitchen Views
+- [ ] `views/kitchen/orders/`
+
+### Cashier Views
+- [ ] `views/cashier/orders/`
+
+### Customer (Public) Views
+- [ ] `views/customer/scan.php`
+- [ ] `views/customer/menu.php`
+- [ ] `views/customer/checkout.php`
+- [ ] `views/customer/success.php`
+
+### Shared Layout
+- [ ] `views/layouts/admin.php` (sidebar layout template)
+
+---
+
+## ❌ Belum Ada — Lainnya
+
+- [ ] `Config/Filters.php` — register AuthFilter & RoleFilter
+- [ ] `app/Helpers/` — QR helper, format_rupiah, dll
+- [ ] `public/uploads/` — folder untuk image menu & QRIS
+
+---
+
+## 🔢 Urutan Implementasi (MVP Priority)
+
+1. **Config Filters** — register filter agar route group bekerja
+2. **Shared Layout** — template sidebar reusable
+3. **Super Admin: Leads CRM** — CRUD + followup + pipeline
+4. **Super Admin: Paket Langganan** — CRUD
+5. **Super Admin: Restoran** — CRUD + konversi lead
+6. **RestaurantAdmin: Profile** — edit profil resto
+7. **RestaurantAdmin: Kategori** — CRUD
+8. **RestaurantAdmin: Menu** — CRUD + upload gambar
+9. **RestaurantAdmin: Meja** — CRUD + generate QR
+10. **Customer: Scan QR** — identifikasi meja & restoran
+11. **Customer: Menu** — tampilkan menu + keranjang
+12. **Customer: Checkout** — form + pilih bayar
+13. **Kitchen Display** — lihat & update status pesanan
+14. **Cashier: Konfirmasi** — bayar cash/QRIS
+15. **RestaurantAdmin: Dashboard** — statistik real
+16. **RestaurantAdmin: Laporan** — harian & bulanan
+17. **CRM Pelanggan otomatis** — update saat order selesai
