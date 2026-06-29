@@ -38,13 +38,23 @@ class Profile extends BaseController
                 return view('layouts/Layout', ['title' => 'Profil Restoran', 'content' => $content]);
             }
 
-            // Handle logo upload
+            helper('upload');
+
+            // Handle logo upload — pertahankan logo lama jika tidak upload baru
             $logo = $this->request->getFile('logo');
             $logoPath = $restaurant['logo'] ?? null;
-            if ($logo && $logo->isValid() && !$logo->hasMoved()) {
-                $logoName = $logo->getRandomName();
-                $logo->move(FCPATH . 'uploads/logos', $logoName);
-                $logoPath = 'uploads/logos/' . $logoName;
+            try {
+                $newLogoPath = move_validated_upload($logo, 'logos');
+                if ($newLogoPath !== null) {
+                    $logoPath = $newLogoPath;
+                }
+            } catch (\RuntimeException $e) {
+                $content = view('resto/profile/edit', [
+                    'restaurant' => $restaurant,
+                    'qris'       => $qris,
+                    'errors'     => ['logo' => $e->getMessage()],
+                ]);
+                return view('layouts/Layout', ['title' => 'Profil Restoran', 'content' => $content]);
             }
 
             $this->restaurantModel->update($restaurantId, [
@@ -56,13 +66,21 @@ class Profile extends BaseController
                 'logo'          => $logoPath,
             ]);
 
-            // Handle QRIS
+            // Handle QRIS — pertahankan gambar lama jika tidak upload baru
             $qrisImage = $this->request->getFile('qris_image');
             $qrisImagePath = $qris['qris_image'] ?? null;
-            if ($qrisImage && $qrisImage->isValid() && !$qrisImage->hasMoved()) {
-                $qrisName = $qrisImage->getRandomName();
-                $qrisImage->move(FCPATH . 'uploads/qris', $qrisName);
-                $qrisImagePath = 'uploads/qris/' . $qrisName;
+            try {
+                $newQrisPath = move_validated_upload($qrisImage, 'qris');
+                if ($newQrisPath !== null) {
+                    $qrisImagePath = $newQrisPath;
+                }
+            } catch (\RuntimeException $e) {
+                $content = view('resto/profile/edit', [
+                    'restaurant' => $restaurant,
+                    'qris'       => $qris,
+                    'errors'     => ['qris_image' => $e->getMessage()],
+                ]);
+                return view('layouts/Layout', ['title' => 'Profil Restoran', 'content' => $content]);
             }
 
             if ($this->request->getPost('merchant_name')) {

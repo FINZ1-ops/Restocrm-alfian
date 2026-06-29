@@ -360,6 +360,12 @@ if (!empty($restaurant['opening_hours'])): ?>
 const TABLE_ID   = <?= $table['id'] ?>;
 const BASE_URL   = "<?= base_url() ?>";
 
+// Token CSRF — disimpan di variabel (bukan langsung di HTML) supaya bisa
+// diupdate tiap habis request, karena Config\Security regenerate = true
+// (token lama langsung tidak valid setiap request selesai).
+let csrfName = "<?= csrf_token() ?>";
+let csrfHash = "<?= csrf_hash() ?>";
+
 // Inisialisasi dari data cart yang sudah ada di session (dikirim PHP)
 let cartData = <?= json_encode(array_values($cart)) ?>;
 
@@ -414,7 +420,7 @@ async function updateCart(menuId, tableId, action) {
         fd.append('menu_id',   menuId);
         fd.append('quantity',  Math.abs(newQty));
         fd.append('action',    postAction);
-        fd.append('<?= csrf_token() ?>', '<?= csrf_hash() ?>');
+        fd.append(csrfName, csrfHash);
 
         const res  = await fetch(BASE_URL + '/order/add-item', { method: 'POST', body: fd });
         const data = await res.json();
@@ -423,6 +429,12 @@ async function updateCart(menuId, tableId, action) {
             // Sinkronkan cart lokal dengan server
             cartData = Object.values(data.cart);
             renderCartBar();
+
+            // Simpan token CSRF baru untuk request selanjutnya
+            if (data.csrfHash) {
+                csrfName = data.csrfName;
+                csrfHash = data.csrfHash;
+            }
         }
     } catch (e) {
         // Jika gagal, rollback UI

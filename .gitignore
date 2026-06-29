@@ -60,6 +60,22 @@ Vagrantfile
 /writable/uploads/*
 !/writable/uploads/index.html
 
+#-------------------------
+# Uploaded Files (gambar logo, menu, QRIS, bukti pembayaran)
+#-------------------------
+# File-file ini diupload pengguna saat aplikasi berjalan (bukan bagian
+# dari source code), jadi tidak perlu — dan sebaiknya tidak — ikut
+# ter-commit. Selain membuat repo membesar tanpa perlu, ini juga bisa
+# ikut membawa data sensitif (misal bukti pembayaran customer asli).
+/public/uploads/menus/*
+/public/uploads/logos/*
+/public/uploads/qris/*
+/public/uploads/proofs/*
+!/public/uploads/menus/.gitkeep
+!/public/uploads/logos/.gitkeep
+!/public/uploads/qris/.gitkeep
+!/public/uploads/proofs/.gitkeep
+
 /writable/debugbar/*
 !/writable/debugbar/index.html
 

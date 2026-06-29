@@ -5,26 +5,18 @@ namespace App\Controllers\Customer;
 use App\Controllers\BaseController;
 use App\Models\Order as OrderModel;
 use App\Models\OrderItem;
-use App\Models\Menu;
-use App\Models\QRIS;
-use App\Models\RestaurantTable;
-use App\Models\Restaurant;
 use App\Models\Payment;
 
 class Order extends BaseController
 {
     protected OrderModel $orderModel;
     protected OrderItem $orderItemModel;
-    protected Menu $menuModel;
-    protected QRIS $qrisModel;
     protected Payment $paymentModel;
 
     public function __construct()
     {
         $this->orderModel     = new OrderModel();
         $this->orderItemModel = new OrderItem();
-        $this->menuModel      = new Menu();
-        $this->qrisModel      = new QRIS();
         $this->paymentModel   = new Payment();
     }
 
@@ -40,7 +32,10 @@ class Order extends BaseController
         $cartKey = 'cart_' . $tableId;
         $cart    = session()->get($cartKey) ?? [];
 
-        $menu = $this->menuModel->find($menuId);
+        // Bypass BaseRestaurantModel auto-filter — lihat catatan di
+        // Customer/Menu.php untuk alasan lengkapnya.
+        $db   = \Config\Database::connect();
+        $menu = $db->table('menus')->where('id', $menuId)->get()->getRowArray();
         if (!$menu) {
             return $this->response->setJSON(['success' => false, 'message' => 'Menu tidak ditemukan']);
         }
@@ -82,10 +77,15 @@ class Order extends BaseController
         $itemCount = array_sum(array_column($cart, 'quantity'));
 
         return $this->response->setJSON([
-            'success'   => true,
-            'cart'      => $cart,
-            'total'     => $total,
-            'itemCount' => $itemCount,
+            'success'    => true,
+            'cart'       => $cart,
+            'total'      => $total,
+            'itemCount'  => $itemCount,
+            // Kirim token CSRF terbaru — token lama langsung tidak valid
+            // setiap request (regenerate = true di Config\Security),
+            // jadi JS harus update token-nya sebelum request berikutnya.
+            'csrfName'   => csrf_token(),
+            'csrfHash'   => csrf_hash(),
         ]);
     }
 
@@ -99,19 +99,27 @@ class Order extends BaseController
             return redirect()->to('/menu/' . $tableId)->with('error', 'Keranjang kosong');
         }
 
-        $tableModel = new RestaurantTable();
-        $table      = $tableModel->find($tableId);
+        // PENTING: semua query di bawah pakai $db->table() langsung, BUKAN
+        // lewat Model (RestaurantTable, Restaurant, QRIS) yang extends
+        // BaseRestaurantModel. Model itu otomatis menambahkan
+        // where('restaurant_id', session('restaurant_id')) di setiap
+        // find()/where(), padahal Customer tidak login — kalau browser
+        // ini kebetulan masih ada sisa session Admin/Kasir resto LAIN,
+        // hasil query bisa salah atau kosong. Sama akar masalahnya
+        // dengan bug session di Customer/Scan.php & Customer/Menu.php.
+        $db = \Config\Database::connect();
+
+        $table = $db->table('restaurant_tables')->where('id', $tableId)->get()->getRowArray();
         if (!$table) {
             return redirect()->back();
         }
 
-        $restaurantModel = new Restaurant();
-        $restaurant      = $restaurantModel->find($table['restaurant_id']);
+        $restaurant = $db->table('restaurants')->where('id', $table['restaurant_id'])->get()->getRowArray();
 
-        $qris = $this->qrisModel
+        $qris = $db->table('qris_settings')
             ->where('restaurant_id', $table['restaurant_id'])
             ->where('is_active', 1)
-            ->first();
+            ->get()->getRowArray();
 
         $total = array_sum(array_column($cart, 'subtotal'));
 
@@ -135,8 +143,8 @@ class Order extends BaseController
             return redirect()->back()->with('error', 'Keranjang kosong');
         }
 
-        $tableModel = new RestaurantTable();
-        $table      = $tableModel->find($tableId);
+        $tableModel = \Config\Database::connect()->table('restaurant_tables');
+        $table      = $tableModel->where('id', $tableId)->get()->getRowArray();
         if (!$table) {
             return redirect()->back()->with('error', 'Meja tidak valid');
         }
@@ -155,14 +163,17 @@ class Order extends BaseController
         $paymentMethod = $this->request->getPost('payment_method');
         $orderCode     = 'ORD-' . strtoupper(substr(uniqid(), -6));
 
-        // Handle QRIS proof upload
+        // Handle QRIS proof upload — validasi tipe & ukuran lewat helper
+        // terpusat, supaya file selain jpg/jpeg/png/webp atau yang
+        // melebihi batas ukuran langsung ditolak sebelum disimpan.
+        helper('upload');
         $proofPath = null;
         if ($paymentMethod === 'qris') {
             $proof = $this->request->getFile('payment_proof');
-            if ($proof && $proof->isValid() && !$proof->hasMoved()) {
-                $proofName = $proof->getRandomName();
-                $proof->move(FCPATH . 'uploads/proofs', $proofName);
-                $proofPath = 'uploads/proofs/' . $proofName;
+            try {
+                $proofPath = move_validated_upload($proof, 'proofs');
+            } catch (\RuntimeException $e) {
+                return redirect()->back()->withInput()->with('error', $e->getMessage());
             }
         }
 
@@ -218,7 +229,11 @@ class Order extends BaseController
 
     public function success($orderCode = null)
     {
-        $order = $this->orderModel->where('order_code', $orderCode)->first();
+        // Sama seperti checkout(): bypass BaseRestaurantModel auto-filter
+        // supaya tidak ikut terfilter session restaurant_id resto lain
+        // yang mungkin masih login di browser yang sama.
+        $db = \Config\Database::connect();
+        $order = $db->table('orders')->where('order_code', $orderCode)->get()->getRowArray();
         return view('customer/success', ['order' => $order]);
     }
 }

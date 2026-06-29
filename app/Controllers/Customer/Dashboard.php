@@ -35,7 +35,7 @@ class Dashboard extends BaseController
 
         // Cek apakah user adalah customer
         if (session()->get('role') !== 'customer') {
-            return redirect()->to(base_url('cutomer/dashboard'));
+            return redirect()->to(base_url('customer/dashboard'));
         }
 
         $userId = session()->get('user_id');

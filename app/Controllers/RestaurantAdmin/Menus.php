@@ -64,12 +64,19 @@ class Menus extends BaseController
             return view('layouts/Layout', ['title' => 'Tambah Menu', 'content' => $content]);
         }
 
+        helper('upload');
         $image = $this->request->getFile('image');
-        $imagePath = null;
-        if ($image && $image->isValid() && !$image->hasMoved()) {
-            $imageName = $image->getRandomName();
-            $image->move(FCPATH . 'uploads/menus', $imageName);
-            $imagePath = 'uploads/menus/' . $imageName;
+        try {
+            $imagePath = move_validated_upload($image, 'menus');
+        } catch (\RuntimeException $e) {
+            $categories = $this->categoryModel->where('restaurant_id', $restaurantId)->where('is_active', 1)->orderBy('sort_order')->findAll();
+            $content = view('resto/menus/form', [
+                'menu'       => null,
+                'categories' => $categories,
+                'errors'     => ['image' => $e->getMessage()],
+                'old'        => $this->request->getPost(),
+            ]);
+            return view('layouts/Layout', ['title' => 'Tambah Menu', 'content' => $content]);
         }
 
         $this->menuModel->insert([
@@ -128,12 +135,22 @@ class Menus extends BaseController
             return view('layouts/Layout', ['title' => 'Edit Menu', 'content' => $content]);
         }
 
+        helper('upload');
         $image = $this->request->getFile('image');
-        $imagePath = $menu['image'];
-        if ($image && $image->isValid() && !$image->hasMoved()) {
-            $imageName = $image->getRandomName();
-            $image->move(FCPATH . 'uploads/menus', $imageName);
-            $imagePath = 'uploads/menus/' . $imageName;
+        $imagePath = $menu['image']; // pertahankan gambar lama jika tidak upload baru
+        try {
+            $newPath = move_validated_upload($image, 'menus');
+            if ($newPath !== null) {
+                $imagePath = $newPath;
+            }
+        } catch (\RuntimeException $e) {
+            $categories = $this->categoryModel->where('restaurant_id', $restaurantId)->where('is_active', 1)->orderBy('sort_order')->findAll();
+            $content = view('resto/menus/form', [
+                'menu'       => $menu,
+                'categories' => $categories,
+                'errors'     => ['image' => $e->getMessage()],
+            ]);
+            return view('layouts/Layout', ['title' => 'Edit Menu', 'content' => $content]);
         }
 
         $this->menuModel->update($id, [
