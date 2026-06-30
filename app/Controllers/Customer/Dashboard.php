@@ -3,29 +3,9 @@
 namespace App\Controllers\Customer;
 
 use App\Controllers\BaseController;
-// use CodeIgniter\HTTP\ResponseInterface;
-use App\Models\Customer;
-use App\Models\Menu;
-use App\Models\MenuCategory;
-use App\Models\Order;
-use App\Models\QRIS;
 
 class Dashboard extends BaseController
 {
-    protected Order $orderModel;
-    protected Menu $menuModel;
-    protected Customer $customerModel;
-    protected MenuCategory $categoryModel;
-    protected QRIS $scan;
-
-    public function __construct() {
-        $this->orderModel = new Order();
-        $this->menuModel = new Menu();
-        $this->customerModel = new Customer();
-        $this->categoryModel = new MenuCategory();
-        $this->scan = new QRIS();
-    }
-
     public function index()
     {
         // Cek apakah user sudah login
@@ -38,21 +18,14 @@ class Dashboard extends BaseController
             return redirect()->to(base_url('customer/dashboard'));
         }
 
-        $userId = session()->get('user_id');
-        $userEmail = session()->get('email');
-        $userName = session()->get('name');
-
-        // Inisialisasi model
-        $this->orderModel = new Order();
-        $this->customerModel = new Customer();
-
-        // Database connection
         $db = \Config\Database::connect();
 
-        // Ambil data customer berdasarkan email atau nama
-        $customerData = $this->customerModel
-            ->where('user_id', session('user_id'))
-            ->first();
+        // Bypass BaseRestaurantModel auto-filter: akun Customer tidak terikat
+        // ke satu restaurant_id tertentu (customer bisa order di banyak
+        // resto berbeda), jadi pencarian berdasarkan user_id harus
+        // lintas-resto, bukan terfilter ke restaurant_id sesi yang mungkin
+        // masih nyangkut dari role lain (Admin/Kasir) di browser yang sama.
+        $customerData = $db->table('customers')->where('user_id', session('user_id'))->get()->getRowArray();
 
         // Hitung total pesanan customer
         $totalOrders = 0;
@@ -134,10 +107,8 @@ class Dashboard extends BaseController
 
         $db = \Config\Database::connect();
 
-        // Ambil data customer
-        $customerData = $this->customerModel
-            ->where('user_id', session('user_id'))
-            ->first();
+        // Bypass BaseRestaurantModel auto-filter — lihat catatan di index()
+        $customerData = $db->table('customers')->where('user_id', session('user_id'))->get()->getRowArray();
 
         $data = [
             'user' => [
@@ -152,7 +123,8 @@ class Dashboard extends BaseController
     }
 
     /**
-     * Halaman riwayat pesanan lengkap
+     * Halaman riwayat pesanan lengkap, dengan filter rentang tanggal opsional.
+     * Query string yang didukung: ?from=YYYY-MM-DD&to=YYYY-MM-DD
      */
     public function orders()
     {
@@ -160,27 +132,48 @@ class Dashboard extends BaseController
             return redirect()->to(base_url('auth/login'));
         }
 
-        $userName = session()->get('name');
-        $userEmail = session()->get('email');
-
         $db = \Config\Database::connect();
 
-        // Ambil data customer
-        $customerData = $this->customerModel
-            ->where('user_id', session('user_id'))
-            ->first();
+        // Bypass BaseRestaurantModel auto-filter — lihat catatan di index()
+        $customerData = $db->table('customers')->where('user_id', session('user_id'))->get()->getRowArray();
 
         $orders = [];
 
+        // Ambil & validasi input filter tanggal dari query string.
+        // Dibiarkan kosong jika tidak diisi atau formatnya tidak valid,
+        // supaya tidak menyebabkan query error dan tetap menampilkan
+        // semua riwayat seperti sebelumnya kalau filter tidak dipakai.
+        $dateFrom = $this->request->getGet('from');
+        $dateTo   = $this->request->getGet('to');
+
+        $isValidDate = function (?string $date): bool {
+            if (empty($date)) {
+                return false;
+            }
+            $d = \DateTime::createFromFormat('Y-m-d', $date);
+            return $d && $d->format('Y-m-d') === $date;
+        };
+
+        $dateFrom = $isValidDate($dateFrom) ? $dateFrom : null;
+        $dateTo   = $isValidDate($dateTo) ? $dateTo : null;
+
         if ($customerData) {
-            // Ambil semua order customer dengan detail
-            $orders = $db->table('orders o')
+            $query = $db->table('orders o')
                 ->select('o.*, r.name as restaurant_name, r.address as restaurant_address')
                 ->join('restaurants r', 'o.restaurant_id = r.id', 'left')
-                ->where('o.customer_id', $customerData['id'])
-                ->orderBy('o.created_at', 'DESC')
-                ->get()
-                ->getResultArray();
+                ->where('o.customer_id', $customerData['id']);
+
+            // Filter "dari tanggal" — ambil dari awal hari (00:00:00)
+            if ($dateFrom) {
+                $query->where('o.created_at >=', $dateFrom . ' 00:00:00');
+            }
+            // Filter "sampai tanggal" — ambil sampai akhir hari (23:59:59),
+            // supaya pesanan yang dibuat di tanggal tersebut tetap ikut.
+            if ($dateTo) {
+                $query->where('o.created_at <=', $dateTo . ' 23:59:59');
+            }
+
+            $orders = $query->orderBy('o.created_at', 'DESC')->get()->getResultArray();
 
             // Ambil items untuk setiap order
             if (!empty($orders)) {
@@ -191,12 +184,12 @@ class Dashboard extends BaseController
                     ->whereIn('oi.order_id', $orderIds)
                     ->get()
                     ->getResultArray();
-                    
+
                 $itemsByOrder = [];
                 foreach ($allItems as $item) {
                     $itemsByOrder[$item['order_id']][] = $item;
                 }
-                
+
                 foreach ($orders as &$order) {
                     $order['items'] = $itemsByOrder[$order['id']] ?? [];
                 }
@@ -204,8 +197,10 @@ class Dashboard extends BaseController
         }
 
         $data = [
-            'orders' => $orders,
-            'customerData' => $customerData
+            'orders'       => $orders,
+            'customerData' => $customerData,
+            'dateFrom'     => $dateFrom,
+            'dateTo'       => $dateTo,
         ];
 
         return view('customer/orders', $data);
@@ -220,15 +215,10 @@ class Dashboard extends BaseController
             return redirect()->to(base_url('auth/login'));
         }
 
-        $userName = session()->get('name');
-        $userEmail = session()->get('email');
-
         $db = \Config\Database::connect();
 
-        // Ambil data customer
-        $customerData = $this->customerModel
-            ->where('user_id', session('user_id'))
-            ->first();
+        // Bypass BaseRestaurantModel auto-filter — lihat catatan di index()
+        $customerData = $db->table('customers')->where('user_id', session('user_id'))->get()->getRowArray();
 
         // Hitung loyalty points
         $points = 0;

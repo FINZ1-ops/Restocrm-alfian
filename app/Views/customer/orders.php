@@ -1,6 +1,8 @@
 <?php
 /**
  * @var mixed $orders
+ * @var string|null $dateFrom
+ * @var string|null $dateTo
  */
 ob_start(); ?>
 
@@ -18,19 +20,52 @@ ob_start(); ?>
         </div>
     </div>
 
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small text-muted mb-1">Dari Tanggal</label>
+                    <input type="date" name="from" class="form-control" value="<?= esc($dateFrom ?? '') ?>">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small text-muted mb-1">Sampai Tanggal</label>
+                    <input type="date" name="to" class="form-control" value="<?= esc($dateTo ?? '') ?>">
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-fill">
+                        <i class="bi bi-funnel me-1"></i> Filter
+                    </button>
+                    <?php if ($dateFrom || $dateTo): ?>
+                        <a href="<?= base_url('customer/orders') ?>" class="btn btn-outline-secondary">
+                            Reset
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <?php if (empty($orders)): ?>
         
         <div class="card border-0 shadow-sm rounded-4">
             <div class="card-body text-center py-5">
                 <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
-                <h5 class="text-muted mb-3">Belum Ada Pesanan</h5>
+                <h5 class="text-muted mb-3">
+                    <?= ($dateFrom || $dateTo) ? 'Tidak Ada Pesanan di Rentang Tanggal Ini' : 'Belum Ada Pesanan' ?>
+                </h5>
                 <p class="text-muted mb-4">
-                    Anda belum pernah melakukan pesanan. Mulai pesan sekarang dengan scan QR Code di meja restoran.
+                    <?php if ($dateFrom || $dateTo): ?>
+                        Coba ubah rentang tanggal atau <a href="<?= base_url('customer/orders') ?>">lihat semua pesanan</a>.
+                    <?php else: ?>
+                        Anda belum pernah melakukan pesanan. Mulai pesan sekarang dengan scan QR Code di meja restoran.
+                    <?php endif; ?>
                 </p>
-                <a href="<?= base_url('customer/dashboard') ?>" class="btn btn-primary">
-                    <i class="bi bi-qr-code-scan me-2"></i>
-                    Mulai Memesan
-                </a>
+                <?php if (!$dateFrom && !$dateTo): ?>
+                    <a href="<?= base_url('customer/dashboard') ?>" class="btn btn-primary">
+                        <i class="bi bi-qr-code-scan me-2"></i>
+                        Mulai Memesan
+                    </a>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -90,11 +125,18 @@ ob_start(); ?>
                                     </thead>
                                     <tbody>
                                         <?php foreach ($order['items'] as $item): ?>
+                                            <?php
+                                                // Kolom 'subtotal' tidak ada di tabel order_items (lihat migration),
+                                                // jadi dihitung di sini dari price x quantity, bukan dibaca
+                                                // langsung dari $item — itu yang menyebabkan error
+                                                // "Undefined array key subtotal" sebelumnya.
+                                                $itemSubtotal = (float) $item['price'] * (int) $item['quantity'];
+                                            ?>
                                             <tr>
                                                 <td><?= esc($item['menu_name']) ?></td>
                                                 <td class="text-center"><?= esc($item['quantity']) ?></td>
                                                 <td class="text-end">Rp <?= number_format($item['price'], 0, ',', '.') ?></td>
-                                                <td class="text-end">Rp <?= number_format($item['subtotal'], 0, ',', '.') ?></td>
+                                                <td class="text-end">Rp <?= number_format($itemSubtotal, 0, ',', '.') ?></td>
                                             </tr>
                                         <?php endforeach; ?>
                                     </tbody>

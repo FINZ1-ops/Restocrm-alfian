@@ -22,7 +22,7 @@ if (!function_exists('validate_uploaded_image')) {
     function validate_uploaded_image($file, int $maxSizeKb = 2048): array
     {
         // Tidak ada file diupload — ini valid (field opsional di banyak form)
-        if (!$file || !$file->isValid() || $file->getError() === UPLOAD_ERR_NO_FILE) {
+        if (!$file || $file->getError() === UPLOAD_ERR_NO_FILE) {
             return ['valid' => true, 'message' => null];
         }
 
@@ -33,11 +33,26 @@ if (!function_exists('validate_uploaded_image')) {
         $allowedExt  = ['jpg', 'jpeg', 'png', 'webp'];
         $allowedMime = ['image/jpeg', 'image/png', 'image/webp'];
 
-        $ext  = strtolower($file->getClientExtension());
-        $mime = $file->getMimeType(); // dideteksi dari konten file, bukan dari nama — lebih aman
+        $ext = strtolower($file->getClientExtension());
 
-        if (!in_array($ext, $allowedExt, true) || !in_array($mime, $allowedMime, true)) {
-            return ['valid' => false, 'message' => 'Format file harus jpg, jpeg, png, atau webp.'];
+        // getMimeType() bergantung pada ekstensi PHP 'fileinfo'. Jika
+        // ekstensi ini tidak aktif di server (umum di sebagian setup
+        // Laragon/XAMPP default), hasilnya bisa 'application/octet-stream'
+        // untuk SEMUA file — termasuk gambar yang sah — yang membuat
+        // validasi ini menolak upload yang sebenarnya benar.
+        // Jadi: kalau MIME terdeteksi generic seperti itu, jangan langsung
+        // tolak — fallback ke validasi berdasarkan ekstensi file saja.
+        $mime = $file->getMimeType();
+        $mimeIsGeneric = in_array($mime, ['application/octet-stream', 'text/plain', null, false], true);
+
+        if ($mimeIsGeneric) {
+            if (!in_array($ext, $allowedExt, true)) {
+                return ['valid' => false, 'message' => 'Format file harus jpg, jpeg, png, atau webp.'];
+            }
+        } else {
+            if (!in_array($ext, $allowedExt, true) || !in_array($mime, $allowedMime, true)) {
+                return ['valid' => false, 'message' => 'Format file harus jpg, jpeg, png, atau webp.'];
+            }
         }
 
         $sizeKb = $file->getSize() / 1024;

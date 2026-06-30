@@ -23,7 +23,7 @@ class Profile extends BaseController
         $restaurant   = $this->restaurantModel->find($restaurantId);
         $qris         = $this->qrisModel->where('restaurant_id', $restaurantId)->first();
 
-        if ($this->request->getMethod() === 'post') {
+        if ($this->request->getMethod() === 'POST') {
             $rules = [
                 'name'     => 'required|min_length[2]|max_length[255]',
                 'whatsapp' => 'required|min_length[8]|max_length[20]',
@@ -38,17 +38,40 @@ class Profile extends BaseController
                 return view('layouts/Layout', ['title' => 'Profil Restoran', 'content' => $content]);
             }
 
+            // ===== DEBUG SEMENTARA — HAPUS SETELAH MASALAH KETEMU =====
+            log_message('error', '[DEBUG UPLOAD] Validasi form: LOLOS');
+            log_message('error', '[DEBUG UPLOAD] $_FILES mentah: ' . print_r($_FILES, true));
+            // ===== END DEBUG =====
+
             helper('upload');
 
             // Handle logo upload — pertahankan logo lama jika tidak upload baru
             $logo = $this->request->getFile('logo');
+
+            // ===== DEBUG SEMENTARA =====
+            log_message('error', '[DEBUG UPLOAD] $logo null? ' . ($logo === null ? 'YA' : 'TIDAK'));
+            if ($logo !== null) {
+                log_message('error', '[DEBUG UPLOAD] getError(): ' . $logo->getError());
+                log_message('error', '[DEBUG UPLOAD] isValid(): ' . ($logo->isValid() ? 'TRUE' : 'FALSE'));
+                log_message('error', '[DEBUG UPLOAD] getClientExtension(): ' . $logo->getClientExtension());
+                log_message('error', '[DEBUG UPLOAD] getMimeType(): ' . $logo->getMimeType());
+                log_message('error', '[DEBUG UPLOAD] getSize(): ' . $logo->getSize());
+            }
+            // ===== END DEBUG =====
+
             $logoPath = $restaurant['logo'] ?? null;
             try {
                 $newLogoPath = move_validated_upload($logo, 'logos');
+                // ===== DEBUG SEMENTARA =====
+                log_message('error', '[DEBUG UPLOAD] newLogoPath hasil: ' . ($newLogoPath ?? 'NULL'));
+                // ===== END DEBUG =====
                 if ($newLogoPath !== null) {
                     $logoPath = $newLogoPath;
                 }
             } catch (\RuntimeException $e) {
+                // ===== DEBUG SEMENTARA =====
+                log_message('error', '[DEBUG UPLOAD] EXCEPTION tertangkap: ' . $e->getMessage());
+                // ===== END DEBUG =====
                 $content = view('resto/profile/edit', [
                     'restaurant' => $restaurant,
                     'qris'       => $qris,
@@ -57,7 +80,11 @@ class Profile extends BaseController
                 return view('layouts/Layout', ['title' => 'Profil Restoran', 'content' => $content]);
             }
 
-            $this->restaurantModel->update($restaurantId, [
+            // ===== DEBUG SEMENTARA =====
+            log_message('error', '[DEBUG UPLOAD] logoPath FINAL yang akan disimpan ke DB: ' . ($logoPath ?? 'NULL'));
+            // ===== END DEBUG =====
+
+            $this->restaurantModel->skipValidation(true)->update($restaurantId, [
                 'name'          => $this->request->getPost('name'),
                 'address'       => $this->request->getPost('address'),
                 'whatsapp'      => $this->request->getPost('whatsapp'),

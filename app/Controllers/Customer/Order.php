@@ -163,6 +163,46 @@ class Order extends BaseController
         $paymentMethod = $this->request->getPost('payment_method');
         $orderCode     = 'ORD-' . strtoupper(substr(uniqid(), -6));
 
+        // Jika customer sedang login (fitur akun customer di luar alur scan
+        // QR biasa), hubungkan order ini ke record customers miliknya,
+        // supaya nanti muncul di halaman "Riwayat Pesanan" (Dashboard::orders()).
+        // Tanpa ini, order yang dibuat customer yang login tidak akan pernah
+        // ketemu lewat pencarian berdasarkan user_id, karena upsertCustomer()
+        // di sisi Kasir (dipanggil saat konfirmasi pembayaran) hanya mencari
+        // berdasarkan whatsapp+restaurant_id, tidak tahu soal akun login.
+        $db = \Config\Database::connect();
+        $customerId = null;
+        if (session('is_logged_in') && session('role') === 'customer') {
+            $userId   = session('user_id');
+            $waNumber = $this->request->getPost('customer_whatsapp');
+
+            $existingCustomer = $db->table('customers')
+                ->where('restaurant_id', $table['restaurant_id'])
+                ->where('whatsapp', $waNumber)
+                ->get()->getRowArray();
+
+            if ($existingCustomer) {
+                // Sudah pernah order di resto ini sebelumnya (mungkin saat
+                // belum login) — pastikan user_id ikut ter-link sekarang.
+                if (empty($existingCustomer['user_id'])) {
+                    $db->table('customers')->where('id', $existingCustomer['id'])->update(['user_id' => $userId]);
+                }
+                $customerId = $existingCustomer['id'];
+            } else {
+                $db->table('customers')->insert([
+                    'user_id'       => $userId,
+                    'restaurant_id' => $table['restaurant_id'],
+                    'name'          => $this->request->getPost('customer_name'),
+                    'whatsapp'      => $waNumber,
+                    'total_orders'  => 0, // diupdate oleh upsertCustomer() saat pembayaran dikonfirmasi
+                    'total_spent'   => 0,
+                    'created_at'    => date('Y-m-d H:i:s'),
+                    'updated_at'    => date('Y-m-d H:i:s'),
+                ]);
+                $customerId = $db->insertID();
+            }
+        }
+
         // Handle QRIS proof upload — validasi tipe & ukuran lewat helper
         // terpusat, supaya file selain jpg/jpeg/png/webp atau yang
         // melebihi batas ukuran langsung ditolak sebelum disimpan.
@@ -181,6 +221,7 @@ class Order extends BaseController
         $orderId = $this->orderModel->insert([
             'restaurant_id'      => $table['restaurant_id'],
             'table_id'           => $tableId,
+            'customer_id'        => $customerId, // null jika customer tidak login, sesuai brief (login opsional)
             'order_code'         => $orderCode,
             'customer_name'      => $this->request->getPost('customer_name'),
             'customer_whatsapp'  => $this->request->getPost('customer_whatsapp'),

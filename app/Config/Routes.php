@@ -24,6 +24,10 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     // Gateway redirect sesuai role
     $routes->get('dashboard', 'Dashboard::index');
 
+    // Halaman Settings — placeholder sederhana, dapat diakses semua role
+    // yang sudah login (dipanggil dari dropdown menu profil di Layout)
+    $routes->get('settings', 'Settings::index');
+
     // Customer Dashboard
     $routes->group('customer', ['filter' => 'role:customer'], function($routes) {
         $routes->get('dashboard', 'Customer\Dashboard::index');
@@ -84,7 +88,7 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
         $routes->get('customers/(:num)', 'RestaurantAdmin\Customers::view/$1');
     });
 
-    // Dapur � antrian masak
+    // Dapur  antrian masak
     $routes->group('kitchen', ['filter' => 'role:dapur'], function($routes) {
         $routes->get('orders', 'Kitchen\Orders::index');
         $routes->post('orders/(:num)/status', 'Kitchen\Orders::updateStatus/$1');

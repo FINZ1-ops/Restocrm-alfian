@@ -154,8 +154,7 @@
         .pay-option:active { transform: scale(0.96); }
 
         /* ── QRIS upload section ── */
-        #qris-section { display: none; margin-top: 16px; animation: slideDown 0.3s ease-out forwards; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        #qris-section { display: none; margin-top: 16px; }
         #qris-section.show { display: block; }
         .qris-img {
             width: 100%;
@@ -167,6 +166,10 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
         .upload-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             border: 2px dashed #a5b4fc;
             border-radius: 16px;
             padding: 24px 20px;
@@ -176,10 +179,24 @@
             font-weight: 600;
             cursor: pointer;
             background: #eef2ff;
-            transition: all 0.2s;
+            transition: background 0.2s;
+            width: 100%;
+            box-sizing: border-box;
         }
-        .upload-box:active { transform: scale(0.98); background: #e0e7ff; }
-        .upload-box input { display: none; }
+        .upload-box:active { background: #e0e7ff; }
+        .upload-box .upload-icon { font-size: 24px; margin-bottom: 6px; }
+        .upload-box .upload-hint { font-size: 11px; color: #94a3b8; margin-top: 4px; font-weight: 400; }
+        /* Input file disembunyikan lewat posisi absolut & ukuran 0,
+           bukan display:none — beberapa mobile browser merender label
+           yang membungkus input file ber-display:none secara tidak
+           konsisten (memecah layout child elements-nya). */
+        .upload-box input[type="file"] {
+            position: absolute;
+            width: 0;
+            height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
         #proof-preview { max-width: 100%; border-radius: 12px; margin-top: 12px; display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
 
         /* ── Tombol submit sticky ── */
@@ -315,9 +332,9 @@ if (!empty($errors)): ?>
             <p style="font-size:13px;color:#64748b;margin:12px 0 8px;">Scan QR di bawah lalu upload bukti transfer:</p>
             <img src="/<?= esc($qris['qris_image']) ?>" class="qris-img" alt="QRIS <?= esc($qris['merchant_name']) ?>">
             <label class="upload-box" for="proof-input">
-                <div style="font-size:24px;margin-bottom:6px;">📷</div>
-                <div>Upload Bukti Pembayaran</div>
-                <div style="font-size:11px;color:#94a3b8;margin-top:4px;">JPG / PNG maks 5MB</div>
+                <span class="upload-icon">📷</span>
+                <span>Upload Bukti Pembayaran</span>
+                <span class="upload-hint">JPG / PNG maks 5MB</span>
                 <input type="file" id="proof-input" name="payment_proof"
                        accept="image/*" onchange="previewProof(this)">
             </label>
