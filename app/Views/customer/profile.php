@@ -95,15 +95,15 @@ ob_start(); ?>
             <p class="text-muted mb-3">
                 Jaga keamanan akun Anda dengan menggunakan password yang kuat dan tidak membagikannya kepada siapapun.
             </p>
-            <a href="<?= base_url('customer/change-password') ?>" class="btn btn-outline-primary">
+            <button class="btn btn-outline-secondary" disabled>
                 <i class="bi bi-key me-2"></i>
-                Ubah Password
-            </a>
+                Ubah Password (Segera Hadir)
+            </button>
         </div>
     </div>
 
     <div class="mt-4">
-        <a href="<?= base_url('customer/dashboard') ?>" class="btn btn-secondary">
+        <a href="<?= base_url('akun/dashboard') ?>" class="btn btn-secondary">
             <i class="bi bi-arrow-left me-2"></i>
             Kembali ke Dashboard
         </a>

@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#1f2c34">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Scan QR Meja — RESTOCRM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --accent: #6366f1;
+            --accent: #ffc327;
             --safe-top: env(safe-area-inset-top, 0px);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
 
         html, body {
             height: 100%;
-            background: #0f172a;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #1f2c34;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             overflow: hidden;
             color: #fff;
         }
@@ -226,7 +227,7 @@
             color: #fff;
             font-size: 20px;
         }
-        .torch-btn.on { background: #fbbf24; color: #0f172a; }
+        .torch-btn.on { background: var(--accent); color: #25343c; }
     </style>
 </head>
 <body>
@@ -235,7 +236,7 @@
 
     <!-- Topbar -->
     <div class="topbar">
-        <a href="/customer/dashboard" class="topbar-back">
+        <a href="/akun/dashboard" class="topbar-back">
             ← Kembali
         </a>
         <span class="topbar-title">Scan QR Meja</span>

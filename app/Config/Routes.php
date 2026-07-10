@@ -8,7 +8,6 @@ use CodeIgniter\Router\RouteCollection;
 $routes->get('/', 'Home::index');
 $routes->match(['get', 'post'], 'auth/login', 'Auth::login');
 $routes->match(['get', 'post'], 'auth/register', 'Auth::register');
-$routes->get('auth/token', 'Auth::getToken');
 $routes->get('auth/logout', 'Auth::logout');
 
 // Pelanggan scan QR & pesan menu (tanpa akun)
@@ -28,8 +27,11 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     // yang sudah login (dipanggil dari dropdown menu profil di Layout)
     $routes->get('settings', 'Settings::index');
 
-    // Customer Dashboard
-    $routes->group('customer', ['filter' => 'role:customer'], function($routes) {
+    // Akun Member Customer (login diperlukan)
+    // Dipisahkan dari jalur publik scan/menu/order yang tidak perlu login.
+    // Prefix 'akun' mempertegas ini adalah area AKUN TERDAFTAR,
+    // bukan 'customer' yang ambigu (tamu biasa juga disebut customer).
+    $routes->group('akun', ['filter' => 'role:customer'], function($routes) {
         $routes->get('dashboard', 'Customer\Dashboard::index');
         $routes->get('profile', 'Customer\Dashboard::profile');
         $routes->get('orders', 'Customer\Dashboard::orders');
@@ -51,6 +53,16 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
 
         // Subscription Plans
         $routes->resource('plans', ['controller' => 'Admin\SubscriptionPlans']);
+
+        // Pembayaran Langganan Aplikasi
+        $routes->get('subscription-payments', 'Admin\SubscriptionPayments::index');
+        $routes->get('subscription-payments/overdue', 'Admin\SubscriptionPayments::overdue');
+        $routes->get('subscription-payments/new', 'Admin\SubscriptionPayments::new');
+        $routes->post('subscription-payments', 'Admin\SubscriptionPayments::create');
+        $routes->get('subscription-payments/(:num)', 'Admin\SubscriptionPayments::view/$1');
+        $routes->post('subscription-payments/(:num)/upload-proof', 'Admin\SubscriptionPayments::uploadProof/$1');
+        $routes->post('subscription-payments/(:num)/confirm', 'Admin\SubscriptionPayments::confirm/$1');
+        $routes->post('subscription-payments/(:num)/reject', 'Admin\SubscriptionPayments::reject/$1');
 
         // Restaurants
         $routes->resource('restaurants', ['controller' => 'Admin\Restaurants']);

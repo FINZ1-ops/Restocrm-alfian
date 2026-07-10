@@ -77,7 +77,7 @@ ob_start(); ?>
                 Untuk melakukan pemesanan makanan atau minuman, silakan scan QR Code yang tersedia di meja restoran.
             </p>
 
-            <a href="/customer/scan" class="btn btn-primary">
+            <a href="/akun/scan" class="btn btn-primary">
                 scan sekarang
             </a>
         </div>

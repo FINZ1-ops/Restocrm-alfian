@@ -172,7 +172,7 @@ ob_start(); ?>
     </div>
 
     <div class="mt-4">
-        <a href="<?= base_url('customer/dashboard') ?>" class="btn btn-secondary">
+        <a href="<?= base_url('akun/dashboard') ?>" class="btn btn-secondary">
             <i class="bi bi-arrow-left me-2"></i>
             Kembali ke Dashboard
         </a>

@@ -15,7 +15,7 @@ class Dashboard extends BaseController
 
         // Cek apakah user adalah customer
         if (session()->get('role') !== 'customer') {
-            return redirect()->to(base_url('customer/dashboard'));
+            return redirect()->to(base_url('akun/dashboard'));
         }
 
         $db = \Config\Database::connect();

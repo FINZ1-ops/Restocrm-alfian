@@ -65,12 +65,17 @@ class Auth extends BaseController
 
             // Data inti yang dipakai filter auth/role dan tampilan layout
             $sessionData = [
-                'user_id'       => $user['id'],
-                'email'         => $user['email'],
-                'name'          => $user['name'],
-                'role'          => $user['role'],
-                'restaurant_id' => $user['restaurant_id'] ?? null,
-                'is_logged_in'  => true,
+                'user_id'             => $user['id'],
+                'email'               => $user['email'],
+                'name'                => $user['name'],
+                'role'                => $user['role'],
+                'restaurant_id'       => $user['restaurant_id'] ?? null,
+                'is_logged_in'        => true,
+                // Flag eksplisit yang membedakan sesi Customer dari Staff —
+                // Customer tidak punya restaurant_id, dan memang tidak boleh
+                // punya akses ke data per-restoran tertentu. Flag ini dipakai
+                // untuk sanitasi data di BaseRestaurantModel dan tempat lain.
+                'is_customer_account' => ($user['role'] === 'customer'),
             ];
 
             // Staff restoran: simpan nama restoran untuk sidebar/header
@@ -178,7 +183,7 @@ class Auth extends BaseController
             'dapur'       => base_url('kitchen/orders'),
             'kasir'       => base_url('cashier/orders'),
             'sales'       => base_url('sales/dashboard'),
-            'customer'    => base_url('customer/dashboard'),
+            'customer'    => base_url('akun/dashboard'),
         ];
 
         $target   = $routes[$role] ?? base_url('dashboard');

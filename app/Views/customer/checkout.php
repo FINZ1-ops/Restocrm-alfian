@@ -4,18 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout — <?= esc($restaurant['name']) ?></title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         :root { 
-            --accent: #4f46e5; 
-            --accent-light: #818cf8;
-            --bg-color: #f8fafc;
-            --text-main: #0f172a;
+            --accent: #ffc327;
+            --accent-hover: #e5ae1f;
+            --dark: #22343f;
+            --bg-color: #f5f5f5;
+            --text-main: #1e293b;
             --text-muted: #64748b;
             --safe-bottom: env(safe-area-inset-bottom, 20px); 
         }
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-color);
             color: var(--text-main);
             padding-bottom: calc(100px + var(--safe-bottom));
@@ -124,7 +126,7 @@
         .form-group input:focus, .form-group textarea:focus {
             border-color: var(--accent);
             background: #fff;
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+            box-shadow: 0 0 0 4px rgba(255, 195, 39, 0.18);
         }
         .form-group input::placeholder, .form-group textarea::placeholder { color: #94a3b8; }
         .form-group textarea { resize: none; height: 80px; }
@@ -146,8 +148,8 @@
         .pay-option .pay-label { font-size: 14px; font-weight: 700; color: var(--text-muted); }
         .pay-option.selected {
             border-color: var(--accent);
-            background: rgba(79, 70, 229, 0.05);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+            background: rgba(255, 195, 39, 0.10);
+            box-shadow: 0 4px 12px rgba(255, 195, 39, 0.16);
         }
         .pay-option.selected .pay-label { color: var(--accent); }
         .pay-option.selected .pay-icon { transform: scale(1.1); }
@@ -170,7 +172,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border: 2px dashed #a5b4fc;
+            border: 2px dashed rgba(255, 195, 39, 0.55);
             border-radius: 16px;
             padding: 24px 20px;
             text-align: center;
@@ -178,12 +180,12 @@
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            background: #eef2ff;
+            background: #fffbeb;
             transition: background 0.2s;
             width: 100%;
             box-sizing: border-box;
         }
-        .upload-box:active { background: #e0e7ff; }
+        .upload-box:active { background: #fef3c7; }
         .upload-box .upload-icon { font-size: 24px; margin-bottom: 6px; }
         .upload-box .upload-hint { font-size: 11px; color: #94a3b8; margin-top: 4px; font-weight: 400; }
         /* Input file disembunyikan lewat posisi absolut & ukuran 0,
@@ -213,19 +215,19 @@
         .btn-order {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, var(--accent), #4338ca);
-            color: #fff;
+            background: var(--accent);
+            color: #25343c;
             border: none;
             border-radius: 16px;
             font-size: 16px;
             font-weight: 800;
             cursor: pointer;
             letter-spacing: 0.5px;
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+            box-shadow: 0 8px 20px rgba(255, 195, 39, 0.28);
             transition: all 0.2s;
             display: flex; justify-content: center; align-items: center; gap: 8px;
         }
-        .btn-order:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4); }
+        .btn-order:active { transform: scale(0.97); box-shadow: 0 4px 12px rgba(255, 195, 39, 0.28); }
         .btn-order:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; transform: none; }
 
         /* Alert error */

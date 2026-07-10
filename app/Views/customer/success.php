@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pesanan Berhasil — RESTOCRM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root { --accent:#ffc327; --accent-hover:#e5ae1f; --dark:#22343f; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: #f1f5f9;
             min-height: 100vh;
             display: flex; align-items: center; justify-content: center;
@@ -84,7 +86,8 @@
             text-decoration: none;
             text-align: center;
         }
-        .btn-primary { background: #6366f1; color: #fff; margin-bottom: 10px; }
+        .btn-primary { background: var(--accent); color: #25343c; margin-bottom: 10px; }
+        .btn-primary:hover { background: var(--accent-hover); color: #25343c; }
         .btn-outline {
             border: 2px solid #e2e8f0;
             color: #64748b;
@@ -107,7 +110,7 @@
 if ($order): ?>
     <div class="order-box">
         <div class="label">Kode Pesanan</div>
-        <div class="value" style="font-family: monospace; font-size: 18px; color: #6366f1;">
+        <div class="value" style="font-family: monospace; font-size: 18px; color: var(--dark);">
             <?= esc($order['order_code']) ?>
         </div>
 

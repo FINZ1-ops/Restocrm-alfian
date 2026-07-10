@@ -23,8 +23,8 @@ ob_start();
         <div class="card border-0 shadow-sm">
             <div class="card-body p-4 text-center">
                 <!-- Avatar inisial -->
-                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center mx-auto mb-3"
-                     style="width:72px;height:72px;font-size:28px;font-weight:700;color:#fff;background:linear-gradient(135deg,#6366f1,#818cf8) !important">
+                <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                     style="width:72px;height:72px;font-size:28px;font-weight:700;color:#25343c;background:linear-gradient(135deg,#ffc327,#e5ae1f) !important">
                     <?= strtoupper(substr($customer['name'], 0, 1)) ?>
                 </div>
                 <h5 class="fw-bold mb-1"><?= esc($customer['name']) ?></h5>

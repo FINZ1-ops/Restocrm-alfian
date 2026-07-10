@@ -36,7 +36,7 @@ ob_start(); ?>
                         <i class="bi bi-funnel me-1"></i> Filter
                     </button>
                     <?php if ($dateFrom || $dateTo): ?>
-                        <a href="<?= base_url('customer/orders') ?>" class="btn btn-outline-secondary">
+                        <a href="<?= base_url('akun/orders') ?>" class="btn btn-outline-secondary">
                             Reset
                         </a>
                     <?php endif; ?>
@@ -55,13 +55,13 @@ ob_start(); ?>
                 </h5>
                 <p class="text-muted mb-4">
                     <?php if ($dateFrom || $dateTo): ?>
-                        Coba ubah rentang tanggal atau <a href="<?= base_url('customer/orders') ?>">lihat semua pesanan</a>.
+                        Coba ubah rentang tanggal atau <a href="<?= base_url('akun/orders') ?>">lihat semua pesanan</a>.
                     <?php else: ?>
                         Anda belum pernah melakukan pesanan. Mulai pesan sekarang dengan scan QR Code di meja restoran.
                     <?php endif; ?>
                 </p>
                 <?php if (!$dateFrom && !$dateTo): ?>
-                    <a href="<?= base_url('customer/dashboard') ?>" class="btn btn-primary">
+                    <a href="<?= base_url('akun/dashboard') ?>" class="btn btn-primary">
                         <i class="bi bi-qr-code-scan me-2"></i>
                         Mulai Memesan
                     </a>
@@ -174,7 +174,7 @@ ob_start(); ?>
     <?php endif; ?>
 
     <div class="mt-4">
-        <a href="<?= base_url('customer/dashboard') ?>" class="btn btn-secondary">
+        <a href="<?= base_url('akun/dashboard') ?>" class="btn btn-secondary">
             <i class="bi bi-arrow-left me-2"></i>
             Kembali ke Dashboard
         </a>

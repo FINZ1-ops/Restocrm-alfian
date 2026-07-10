@@ -176,9 +176,9 @@ $users        = $users        ?? [];
                                 <td class="ps-4">
                                     <div class="d-flex align-items-center gap-2">
                                         <!-- Avatar inisial nama -->
-                                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white"
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
                                              style="width:32px;height:32px;font-size:13px;flex-shrink:0;
-                                                    background:linear-gradient(135deg,#6366f1,#818cf8);">
+                                                    color:#25343c;background:linear-gradient(135deg,#ffc327,#e5ae1f);">
                                             <?= strtoupper(substr($user['name'], 0, 1)) ?>
                                         </div>
                                         <span class="fw-medium small"><?= esc($user['name']) ?></span>

@@ -30,7 +30,7 @@ class Dashboard extends BaseController
             'dapur'       => base_url('kitchen/orders'),
             'kasir'       => base_url('cashier/orders'),
             'sales'       => base_url('sales/leads'),
-            'customer'    => base_url('customer/dashboard')
+            'customer'    => base_url('akun/dashboard'),
         ];
 
         if (isset($routes[$role])) {

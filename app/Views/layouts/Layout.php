@@ -24,6 +24,7 @@ if ($role === 'super_admin') {
         ['url' => '/admin/leads',         'icon' => 'bi-funnel',          'label' => 'Leads CRM'],
         ['url' => '/admin/plans',         'icon' => 'bi-box-seam',        'label' => 'Paket Langganan'],
         ['url' => '/admin/restaurants',   'icon' => 'bi-shop',            'label' => 'Restoran'],
+        ['url' => '/admin/subscription-payments', 'icon' => 'bi-receipt', 'label' => 'Pembayaran Langganan'],
     ];
 } elseif ($role === 'admin_resto') {
     $navItems = [
@@ -53,10 +54,10 @@ if ($role === 'super_admin') {
     ];
 } elseif ($role === 'customer'){
     $navItems = [
-        ['url' => '/customer/dashboard',   'icon' => 'bi-speedometer2',   'label' => 'Dashboard'],
-        ['url' => '/customer/orders',      'icon' => 'bi-receipt',        'label' => 'Riwayat Pesanan'],
-        ['url' => '/customer/rewards',     'icon' => 'bi-gift',           'label' => 'Poin & Voucher'],
-        ['url' => '/customer/profile',     'icon' => 'bi-person',         'label' => 'Profil'],
+        ['url' => '/akun/dashboard',   'icon' => 'bi-speedometer2',   'label' => 'Dashboard'],
+        ['url' => '/akun/orders',      'icon' => 'bi-receipt',        'label' => 'Riwayat Pesanan'],
+        ['url' => '/akun/rewards',     'icon' => 'bi-gift',           'label' => 'Poin & Voucher'],
+        ['url' => '/akun/profile',     'icon' => 'bi-person',         'label' => 'Profil'],
     ];
 }
 ?>
@@ -416,11 +417,6 @@ if ($role === 'super_admin') {
     </nav>
 
     <div class="sidebar-footer">
-        <?php if ($role === 'admin_resto'): ?>
-            <a href="/resto/orders/new" class="new-order-btn">
-                <i class="bi bi-plus-circle"></i> New Order
-            </a>
-        <?php endif; ?>
         <a href="/settings" class="footer-link">
             <i class="bi bi-gear"></i> Settings
         </a>

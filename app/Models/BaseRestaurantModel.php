@@ -23,6 +23,10 @@ class BaseRestaurantModel extends Model
 
     /**
      * Set restoran aktif — dari parameter atau dari session.
+     * Untuk akun Customer (is_customer_account = true), restaurant_id
+     * selalu di-set NULL agar tidak ada tenant filter yang bocor,
+     * meskipun masih ada sisa session dari login Staff sebelumnya
+     * di browser yang sama.
      */
     public function setCurrentRestaurant($restaurantId = null)
     {
@@ -30,7 +34,13 @@ class BaseRestaurantModel extends Model
             $this->restaurantId = $restaurantId;
         } else {
             $session = session();
-            $this->restaurantId = $session->get('restaurant_id');
+            // Customer tidak terikat ke satu restoran — paksa null
+            // supaya applyRestaurantFilter() tidak pernah aktif.
+            if ($session->get('is_customer_account')) {
+                $this->restaurantId = null;
+            } else {
+                $this->restaurantId = $session->get('restaurant_id');
+            }
         }
         return $this;
     }

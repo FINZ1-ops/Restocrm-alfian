@@ -7,15 +7,26 @@
     <meta name="description" content="Daftarkan akun Anda ke RESTOCRM dan mulai kelola restoran secara digital.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; }
 
+        :root {
+            --bg-dark: #1f2c34;
+            --bg-dark-2: #22343f;
+            --panel: rgba(19, 31, 39, 0.72);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --text-soft: rgba(255, 255, 255, 0.74);
+            --text-muted: rgba(255, 255, 255, 0.52);
+            --accent: #ffc327;
+            --accent-hover: #e5ae1f;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             min-height: 100vh;
             display: flex;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            background: linear-gradient(140deg, var(--bg-dark) 0%, var(--bg-dark-2) 60%, #2f3f4a 100%);
             overflow-x: hidden;
         }
 
@@ -27,9 +38,9 @@
             animation: blobFloat 8s ease-in-out infinite alternate;
             pointer-events: none;
         }
-        .blob-1 { width: 500px; height: 500px; background: #6366f1; top: -100px; left: -100px; }
-        .blob-2 { width: 400px; height: 400px; background: #8b5cf6; bottom: -100px; right: -100px; animation-delay: -3s; }
-        .blob-3 { width: 300px; height: 300px; background: #ec4899; top: 40%; left: 40%; animation-delay: -6s; }
+        .blob-1 { width: 500px; height: 500px; background: #2f4652; top: -100px; left: -100px; }
+        .blob-2 { width: 400px; height: 400px; background: #3b5a68; bottom: -100px; right: -100px; animation-delay: -3s; }
+        .blob-3 { width: 300px; height: 300px; background: rgba(255, 195, 39, 0.25); top: 40%; left: 40%; animation-delay: -6s; }
 
         @keyframes blobFloat {
             from { transform: translate(0, 0) scale(1); }
@@ -56,13 +67,9 @@
         @media (min-width: 992px) { .branding-panel { display: flex; } }
 
         .branding-logo { font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 48px; }
-        .branding-logo span {
-            background: linear-gradient(135deg, #a78bfa, #f472b6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        .branding-logo span { color: var(--accent); }
         .branding-tagline { font-size: 38px; font-weight: 800; line-height: 1.2; margin-bottom: 20px; letter-spacing: -1px; }
-        .branding-desc { font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.7; max-width: 400px; margin-bottom: 40px; }
+        .branding-desc { font-size: 15px; color: var(--text-soft); line-height: 1.7; max-width: 400px; margin-bottom: 40px; }
 
         .steps { list-style: none; padding: 0; margin: 0; counter-reset: step; }
         .steps li {
@@ -70,7 +77,7 @@
             display: flex;
             align-items: flex-start;
             gap: 14px;
-            color: rgba(255,255,255,0.75);
+            color: var(--text-soft);
             font-size: 14px;
             margin-bottom: 18px;
         }
@@ -78,14 +85,14 @@
             content: counter(step);
             width: 28px;
             height: 28px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            background: var(--accent);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
             font-size: 13px;
-            color: white;
+            color: #25343c;
             flex-shrink: 0;
         }
 
@@ -97,24 +104,20 @@
             align-items: center;
             justify-content: center;
             padding: 40px 24px;
-            background: rgba(255, 255, 255, 0.04);
+            background: var(--panel);
             backdrop-filter: blur(24px);
-            border-left: 1px solid rgba(255,255,255,0.08);
+            border-left: 1px solid var(--panel-border);
         }
         @media (max-width: 991px) { .form-panel { max-width: 100%; } }
 
         .form-box { width: 100%; max-width: 420px; }
 
         .mobile-logo { font-size: 24px; font-weight: 800; color: white; margin-bottom: 32px; }
-        .mobile-logo span {
-            background: linear-gradient(135deg, #a78bfa, #f472b6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        .mobile-logo span { color: var(--accent); }
         @media (min-width: 992px) { .mobile-logo { display: none !important; } }
 
         .form-title { font-size: 28px; font-weight: 800; color: white; margin-bottom: 6px; letter-spacing: -0.5px; }
-        .form-subtitle { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 28px; }
+        .form-subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 28px; }
 
         .form-floating label { color: rgba(255,255,255,0.4); font-size: 14px; }
         .form-floating .form-control {
@@ -130,12 +133,12 @@
         .form-floating .form-control::placeholder { color: transparent; }
         .form-floating .form-control:focus {
             background: rgba(255,255,255,0.1);
-            border-color: #a78bfa;
-            box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.15);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(255, 195, 39, 0.18);
             color: white;
         }
         .form-floating .form-control:-webkit-autofill {
-            -webkit-box-shadow: 0 0 0 1000px rgba(48, 43, 99, 0.9) inset;
+            -webkit-box-shadow: 0 0 0 1000px rgba(34, 52, 63, 0.92) inset;
             -webkit-text-fill-color: white;
         }
 
@@ -155,21 +158,22 @@
 
         .btn-register {
             width: 100%;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            background: var(--accent);
             border: none;
             border-radius: 12px;
             padding: 15px;
-            color: white;
+            color: #25343c;
             font-size: 15px;
             font-weight: 700;
             letter-spacing: 0.3px;
             transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 6px 18px rgba(255, 195, 39, 0.28);
         }
         .btn-register:hover {
+            background: var(--accent-hover);
             transform: translateY(-2px);
-            box-shadow: 0 8px 28px rgba(99, 102, 241, 0.55);
-            color: white; opacity: 0.95;
+            box-shadow: 0 10px 24px rgba(255, 195, 39, 0.35);
+            color: #25343c; opacity: 0.95;
         }
 
         .alert-glass {
@@ -216,8 +220,8 @@
             color: rgba(255,255,255,0.4);
         }
 
-        .link-auth { color: #a78bfa; text-decoration: none; font-weight: 600; }
-        .link-auth:hover { color: #c4b5fd; text-decoration: underline; }
+        .link-auth { color: var(--accent); text-decoration: none; font-weight: 600; }
+        .link-auth:hover { color: #ffd35f; text-decoration: underline; }
 
         .divider {
             display: flex;

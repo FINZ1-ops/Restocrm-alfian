@@ -12,122 +12,138 @@
  */
 ob_start();
 ?>
-<div class="d-flex justify-content-between align-items-center mb-4">
+<style>
+    .report-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px 24px;
+        padding-bottom: 24px;
+        margin-bottom: 24px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    @media (min-width: 992px) {
+        .report-stats { grid-template-columns: repeat(4, 1fr); }
+    }
+    .report-stat-label {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        margin-bottom: 6px;
+    }
+    .report-stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1e293b;
+        line-height: 1.2;
+    }
+    .report-stat-value.sm { font-size: 1.35rem; }
+    .report-stat-icon {
+        color: #FFC327;
+        font-size: 15px;
+        margin-right: 6px;
+    }
+    .report-section {
+        margin-bottom: 32px;
+    }
+    .report-section-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 16px;
+    }
+    .report-filter {
+        padding-bottom: 20px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+</style>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
     <div>
-        <h2 class="fw-bold mb-1">Laporan Harian</h2>
+        <h2 class="fw-bold mb-1 text-dark">Laporan Harian</h2>
         <p class="text-secondary mb-0"><?= date('d F Y', strtotime($date)) ?></p>
     </div>
-    <!-- Navigasi antar-laporan -->
-    <div class="d-flex gap-2">
-        <a href="/resto/reports/daily" class="btn btn-primary btn-sm">Harian</a>
+    <div class="btn-group" role="group" aria-label="Jenis laporan">
+        <a href="/resto/reports/daily" class="btn btn-primary btn-sm active">Harian</a>
         <a href="/resto/reports/monthly" class="btn btn-outline-secondary btn-sm">Bulanan</a>
     </div>
 </div>
 
 <!-- Filter tanggal -->
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body p-3">
-        <form method="GET" class="d-flex gap-2 align-items-end flex-wrap">
-            <div>
-                <label class="form-label small mb-1">Pilih Tanggal</label>
-                <input type="date" name="date" class="form-control form-control-sm"
-                       value="<?= esc($date) ?>" max="<?= date('Y-m-d') ?>">
-            </div>
-            <button type="submit" class="btn btn-primary btn-sm">Tampilkan</button>
-        </form>
-    </div>
+<div class="report-filter">
+    <form method="GET" class="d-flex gap-2 align-items-end flex-wrap">
+        <div>
+            <label class="form-label small mb-1">Pilih Tanggal</label>
+            <input type="date" name="date" class="form-control form-control-sm"
+                   value="<?= esc($date) ?>" max="<?= date('Y-m-d') ?>">
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">Tampilkan</button>
+    </form>
 </div>
 
-<!-- Kartu statistik ringkasan -->
-<div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3">
-        <div class="stat-card">
-            <div class="stat-icon bg-primary-subtle"><i class="bi bi-receipt text-primary"></i></div>
-            <div class="stat-value"><?= (int)($summary->total_orders ?? 0) ?></div>
-            <div class="stat-label">Total Pesanan</div>
-        </div>
+<!-- Ringkasan statistik -->
+<div class="report-stats">
+    <div>
+        <div class="report-stat-label"><i class="bi bi-receipt report-stat-icon"></i>TOTAL PESANAN</div>
+        <div class="report-stat-value"><?= (int)($summary->total_orders ?? 0) ?></div>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="stat-card">
-            <div class="stat-icon bg-success-subtle"><i class="bi bi-cash-stack text-success"></i></div>
-            <div class="stat-value" style="font-size:18px">
-                Rp <?= number_format((float)($summary->total_revenue ?? 0) / 1000, 0, ',', '.') ?>k
-            </div>
-            <div class="stat-label">Total Pendapatan</div>
-        </div>
+    <div>
+        <div class="report-stat-label"><i class="bi bi-cash-stack report-stat-icon"></i>TOTAL PENDAPATAN</div>
+        <div class="report-stat-value sm">Rp <?= number_format((float)($summary->total_revenue ?? 0) / 1000, 0, ',', '.') ?>k</div>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="stat-card">
-            <div class="stat-icon bg-warning-subtle"><i class="bi bi-cash text-warning"></i></div>
-            <div class="stat-value" style="font-size:18px">
-                Rp <?= number_format((float)($summary->cash_revenue ?? 0) / 1000, 0, ',', '.') ?>k
-            </div>
-            <div class="stat-label">Total Cash</div>
-        </div>
+    <div>
+        <div class="report-stat-label"><i class="bi bi-cash report-stat-icon"></i>TOTAL CASH</div>
+        <div class="report-stat-value sm">Rp <?= number_format((float)($summary->cash_revenue ?? 0) / 1000, 0, ',', '.') ?>k</div>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="stat-card">
-            <div class="stat-icon bg-info-subtle"><i class="bi bi-qr-code text-info"></i></div>
-            <div class="stat-value" style="font-size:18px">
-                Rp <?= number_format((float)($summary->qris_revenue ?? 0) / 1000, 0, ',', '.') ?>k
-            </div>
-            <div class="stat-label">Total QRIS</div>
-        </div>
+    <div>
+        <div class="report-stat-label"><i class="bi bi-qr-code report-stat-icon"></i>TOTAL QRIS</div>
+        <div class="report-stat-value sm">Rp <?= number_format((float)($summary->qris_revenue ?? 0) / 1000, 0, ',', '.') ?>k</div>
     </div>
 </div>
 
 <div class="row g-4">
     <!-- Top menu hari ini -->
     <div class="col-lg-5">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header">Menu Terlaris Hari Ini</div>
-            <div class="card-body p-0">
-                <?php if (empty($topItems)): ?>
-                    <div class="text-center text-muted py-5">Belum ada data</div>
-                <?php else: ?>
-                    <div class="list-group list-group-flush">
-                        <?php foreach ($topItems as $i => $item): ?>
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center gap-3">
-                                <!-- Nomor urut -->
-                                <span class="badge bg-primary rounded-circle"
-                                      style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
-                                    <?= $i + 1 ?>
-                                </span>
-                                <div>
-                                    <div class="fw-semibold small"><?= esc($item['name']) ?></div>
-                                    <div class="text-muted" style="font-size:11px">
-                                        Rp <?= number_format((float)$item['revenue'], 0, ',', '.') ?>
-                                    </div>
-                                </div>
+        <div class="report-section h-100">
+            <div class="report-section-title">Menu Terlaris Hari Ini</div>
+            <?php if (empty($topItems)): ?>
+                <div class="text-center text-muted py-4">Belum ada data</div>
+            <?php else: ?>
+                <?php foreach ($topItems as $i => $item): ?>
+                <div class="d-flex justify-content-between align-items-center py-3 <?= $i > 0 ? 'border-top' : '' ?>" style="border-color:#e2e8f0 !important;">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="fw-bold text-secondary" style="font-size:13px;min-width:20px;">#<?= $i + 1 ?></span>
+                        <div>
+                            <div class="fw-semibold small"><?= esc($item['name']) ?></div>
+                            <div class="text-muted" style="font-size:11px">
+                                Rp <?= number_format((float)$item['revenue'], 0, ',', '.') ?>
                             </div>
-                            <span class="badge bg-primary-subtle text-primary">
-                                <?= (int)$item['qty'] ?>x
-                            </span>
                         </div>
-                        <?php endforeach; ?>
                     </div>
-                <?php endif; ?>
-            </div>
+                    <span class="text-secondary small fw-semibold"><?= (int)$item['qty'] ?>x</span>
+                </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
     </div>
 
     <!-- Daftar transaksi hari ini -->
     <div class="col-lg-7">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header">
+        <div class="report-section">
+            <div class="report-section-title d-flex align-items-center gap-2">
                 Transaksi Hari Ini
-                <span class="badge bg-secondary ms-2"><?= count($orders) ?></span>
+                <span class="badge bg-secondary"><?= count($orders) ?></span>
             </div>
             <div class="table-responsive" style="max-height:420px;overflow-y:auto">
-                <table class="table table-hover mb-0">
-                    <thead class="sticky-top">
-                        <tr>
-                            <th>Kode</th>
-                            <th>Pelanggan</th>
-                            <th>Total</th>
-                            <th>Bayar</th>
-                            <th>Status</th>
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #e2e8f0;">
+                            <th class="text-secondary fw-semibold py-2" style="font-size: 11px; letter-spacing: 0.5px; position: sticky; top: 0; background: #f5f5f5; z-index: 1;">KODE</th>
+                            <th class="text-secondary fw-semibold py-2" style="font-size: 11px; letter-spacing: 0.5px; position: sticky; top: 0; background: #f5f5f5; z-index: 1;">PELANGGAN</th>
+                            <th class="text-secondary fw-semibold py-2" style="font-size: 11px; letter-spacing: 0.5px; position: sticky; top: 0; background: #f5f5f5; z-index: 1;">TOTAL</th>
+                            <th class="text-secondary fw-semibold py-2" style="font-size: 11px; letter-spacing: 0.5px; position: sticky; top: 0; background: #f5f5f5; z-index: 1;">BAYAR</th>
+                            <th class="text-secondary fw-semibold py-2" style="font-size: 11px; letter-spacing: 0.5px; position: sticky; top: 0; background: #f5f5f5; z-index: 1;">STATUS</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -169,7 +185,4 @@ ob_start();
         </div>
     </div>
 </div>
-<?php
-$content = ob_get_clean();
-echo view('layouts/Layout', ['title' => 'Laporan Harian', 'content' => $content]);
-?>
+<?= ob_get_clean() ?>

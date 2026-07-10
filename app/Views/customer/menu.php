@@ -4,18 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu — <?= esc($restaurant['name']) ?></title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
-            --accent: #4f46e5;
-            --accent-light: #818cf8;
-            --bg-color: #f8fafc;
-            --text-main: #0f172a;
+            --accent: #ffc327;
+            --accent-hover: #e5ae1f;
+            --dark: #22343f;
+            --bg-color: #f5f5f5;
+            --text-main: #1e293b;
             --text-muted: #64748b;
             --safe-bottom: env(safe-area-inset-bottom, 20px);
         }
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-color);
             color: var(--text-main);
             padding-bottom: calc(100px + var(--safe-bottom));
@@ -24,12 +26,12 @@
 
         /* ── Header restoran ── */
         .resto-header {
-            background: linear-gradient(135deg, var(--accent), #3730a3);
+            background: linear-gradient(135deg, #1f2c34 0%, var(--dark) 70%, #2f3f4a 100%);
             color: #fff;
             padding: 28px 24px 48px;
             border-bottom-left-radius: 24px;
             border-bottom-right-radius: 24px;
-            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.2);
+            box-shadow: 0 10px 25px rgba(34, 52, 63, 0.16);
             position: relative;
         }
         .resto-name { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
@@ -81,8 +83,8 @@
         }
         .tab-item.active {
             background: var(--accent);
-            color: #fff;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            color: #25343c;
+            box-shadow: 0 4px 12px rgba(255, 195, 39, 0.28);
             transform: translateY(-1px);
         }
 
@@ -194,7 +196,7 @@
         }
         .btn-minus { background: #fff; color: var(--text-muted); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .btn-minus.active { color: #dc2626; }
-        .btn-plus  { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3); }
+        .btn-plus  { background: var(--accent); color: #25343c; box-shadow: 0 2px 8px rgba(255, 195, 39, 0.28); }
         .btn-plus:active, .btn-minus.active:active { transform: scale(0.85); }
         .qty-num   { min-width: 24px; text-align: center; font-size: 15px; font-weight: 700; color: var(--text-main); }
 
@@ -226,14 +228,14 @@
         .cart-bar:active { transform: scale(0.97); }
         .cart-count {
             background: var(--accent);
-            color: #fff;
+            color: #25343c;
             width: 32px; height: 32px;
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             font-size: 14px;
             font-weight: 800;
             margin-right: 12px;
-            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
+            box-shadow: 0 2px 8px rgba(255, 195, 39, 0.34);
         }
         .cart-label { font-size: 15px; font-weight: 600; letter-spacing: 0.2px; }
         .cart-total { font-size: 16px; font-weight: 800; margin-right: 4px; }
