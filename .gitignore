@@ -75,6 +75,8 @@ Vagrantfile
 !/public/uploads/logos/.gitkeep
 !/public/uploads/qris/.gitkeep
 !/public/uploads/proofs/.gitkeep
+/public/uploads/subscription_proofs/*
+!/public/uploads/subscription_proofs/.gitkeep
 
 /writable/debugbar/*
 !/writable/debugbar/index.html

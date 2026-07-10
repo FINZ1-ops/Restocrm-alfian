@@ -4,13 +4,23 @@ use CodeIgniter\Router\RouteCollection;
 
 /** @var RouteCollection $routes */
 
-// -- Route publik (tanpa login) ------------------------------------------------------
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+| These routes are accessible without authentication.
+*/
 $routes->get('/', 'Home::index');
 $routes->match(['get', 'post'], 'auth/login', 'Auth::login');
 $routes->match(['get', 'post'], 'auth/register', 'Auth::register');
 $routes->get('auth/logout', 'Auth::logout');
 
-// Pelanggan scan QR & pesan menu (tanpa akun)
+/*
+|--------------------------------------------------------------------------
+| Customer QR Ordering Routes (No Authentication Required)
+|--------------------------------------------------------------------------
+| Handling the flow from scanning a QR code to processing an order.
+*/
 $routes->get('scan/(:segment)', 'Customer\Scan::index/$1');
 $routes->get('menu/(:num)', 'Customer\Menu::index/$1');
 $routes->post('order/add-item', 'Customer\Order::addItem');
@@ -18,19 +28,25 @@ $routes->get('order/checkout/(:num)', 'Customer\Order::checkout/$1');
 $routes->post('order/process', 'Customer\Order::process');
 $routes->get('order/success/(:segment)', 'Customer\Order::success/$1');
 
-// -- Route terproteksi: wajib login (AuthFilter) --------------------------------------
+/*
+|--------------------------------------------------------------------------
+| Authenticated Routes
+|--------------------------------------------------------------------------
+| All routes within this group require a valid user session.
+*/
 $routes->group('', ['filter' => 'auth'], function($routes) {
-    // Gateway redirect sesuai role
+    
+    // Default dashboard gateway based on user role
     $routes->get('dashboard', 'Dashboard::index');
 
-    // Halaman Settings — placeholder sederhana, dapat diakses semua role
-    // yang sudah login (dipanggil dari dropdown menu profil di Layout)
+    // General user settings
     $routes->get('settings', 'Settings::index');
 
-    // Akun Member Customer (login diperlukan)
-    // Dipisahkan dari jalur publik scan/menu/order yang tidak perlu login.
-    // Prefix 'akun' mempertegas ini adalah area AKUN TERDAFTAR,
-    // bukan 'customer' yang ambigu (tamu biasa juga disebut customer).
+    /*
+    |--------------------------------------------------------------------------
+    | Member Area (Role: Customer)
+    |--------------------------------------------------------------------------
+    */
     $routes->group('akun', ['filter' => 'role:customer'], function($routes) {
         $routes->get('dashboard', 'Customer\Dashboard::index');
         $routes->get('profile', 'Customer\Dashboard::profile');
@@ -39,22 +55,26 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
         $routes->get('scan', 'Customer\Dashboard::scanPage');
     });
 
-    // Super Admin  filter tambahan: hanya role super_admin
+    /*
+    |--------------------------------------------------------------------------
+    | Super Admin Area (Role: Super Admin)
+    |--------------------------------------------------------------------------
+    */
     $routes->group('admin', ['filter' => 'role:super_admin'], function($routes) {
         $routes->get('dashboard', 'Admin\Dashboard::index');
         
-        // Leads CRM
+        // Lead Management (CRM)
         $routes->resource('leads', ['controller' => 'Admin\Leads']);
         $routes->post('leads/(:num)/followup', 'Admin\Leads::addFollowup/$1');
 
-        //Convert leads
+        // Lead Conversion to Restaurant
         $routes->get('leads/(:num)/convert', 'Admin\Restaurants::convertLead/$1');
         $routes->post('leads/(:num)/convert', 'Admin\Restaurants::doConvert/$1');
 
-        // Subscription Plans
+        // Subscription Plans Management
         $routes->resource('plans', ['controller' => 'Admin\SubscriptionPlans']);
 
-        // Pembayaran Langganan Aplikasi
+        // Subscription Payments
         $routes->get('subscription-payments', 'Admin\SubscriptionPayments::index');
         $routes->get('subscription-payments/overdue', 'Admin\SubscriptionPayments::overdue');
         $routes->get('subscription-payments/new', 'Admin\SubscriptionPayments::new');
@@ -64,49 +84,57 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
         $routes->post('subscription-payments/(:num)/confirm', 'Admin\SubscriptionPayments::confirm/$1');
         $routes->post('subscription-payments/(:num)/reject', 'Admin\SubscriptionPayments::reject/$1');
 
-        // Restaurants
+        // Restaurant Management
         $routes->resource('restaurants', ['controller' => 'Admin\Restaurants']);
         $routes->post('restaurants/(:num)/convert', 'Admin\Restaurants::convertLead/$1');
     });
 
-    // Admin restoran (pemilik outlet)
+    /*
+    |--------------------------------------------------------------------------
+    | Restaurant Admin Area (Role: Admin Resto)
+    |--------------------------------------------------------------------------
+    */
     $routes->group('resto', ['filter' => 'role:admin_resto'], function($routes) {
-        // Restaurant Profile
+        // Core Management
         $routes->match(['get', 'post'], 'profile', 'RestaurantAdmin\Profile::edit');
-
-        // Menu Management
         $routes->resource('categories', ['controller' => 'RestaurantAdmin\MenuCategories']);
         $routes->resource('menus', ['controller' => 'RestaurantAdmin\Menus']);
-
-        // Staff Management
         $routes->resource('staff', ['controller' => 'RestaurantAdmin\Staff']);
 
-        // Table Management
+        // Table Configuration
         $routes->get('tables/(:num)/qr', 'RestaurantAdmin\Tables::generateQr/$1');
         $routes->resource('tables', ['controller' => 'RestaurantAdmin\Tables']);
 
-        // Dashboard & Reports
+        // Analytics and Reports
         $routes->get('dashboard', 'RestaurantAdmin\Dashboard::index');
         $routes->get('reports', 'RestaurantAdmin\Reports::index');
         $routes->get('reports/daily', 'RestaurantAdmin\Reports::daily');
         $routes->get('reports/monthly', 'RestaurantAdmin\Reports::monthly');
 
-        // Orders
+        // Order Tracking
         $routes->get('orders', 'RestaurantAdmin\Orders::index');
         $routes->get('orders/(:num)', 'RestaurantAdmin\Orders::view/$1');
 
-        // Customers
+        // Customer Base
         $routes->get('customers', 'RestaurantAdmin\Customers::index');
         $routes->get('customers/(:num)', 'RestaurantAdmin\Customers::view/$1');
     });
 
-    // Dapur  antrian masak
+    /*
+    |--------------------------------------------------------------------------
+    | Kitchen Operations (Role: Dapur)
+    |--------------------------------------------------------------------------
+    */
     $routes->group('kitchen', ['filter' => 'role:dapur'], function($routes) {
         $routes->get('orders', 'Kitchen\Orders::index');
         $routes->post('orders/(:num)/status', 'Kitchen\Orders::updateStatus/$1');
     });
 
-    // Kasir  konfirmasi pembayaran
+    /*
+    |--------------------------------------------------------------------------
+    | Cashier Operations (Role: Kasir)
+    |--------------------------------------------------------------------------
+    */
     $routes->group('cashier', ['filter' => 'role:kasir'], function($routes) {
         $routes->get('orders', 'Cashier\Orders::index');
         $routes->get('orders/(:num)', 'Cashier\Orders::view/$1');
@@ -114,9 +142,13 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
         $routes->post('orders/(:num)/verify-qris', 'Cashier\Orders::verifyQris/$1');
     });
 
-    // Sales  leads & pipeline
-   $routes->group('sales', ['filter' => 'role:sales'], function($routes) {
-        $routes->get('dashboard', 'Sales\Dashboard::index');         // ← TAMBAH INI
+    /*
+    |--------------------------------------------------------------------------
+    | Sales CRM (Role: Sales)
+    |--------------------------------------------------------------------------
+    */
+    $routes->group('sales', ['filter' => 'role:sales'], function($routes) {
+        $routes->get('dashboard', 'Sales\Dashboard::index');         
         $routes->resource('leads', ['controller' => 'Sales\Leads']);
         $routes->post('leads/(:num)/followup', 'Sales\Leads::addFollowup/$1');
         $routes->get('pipeline', 'Sales\Pipeline::index');
