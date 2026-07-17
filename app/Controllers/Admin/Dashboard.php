@@ -60,6 +60,7 @@ class Dashboard extends BaseController
         $dailyLabels = [];
         $dailyNewLeads = [];
         $dailyNewRestaurants = [];
+        $dailyNewSubscriptions = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = date('Y-m-d', strtotime("-$i days"));
             $dailyLabels[] = date('d M', strtotime($date));
@@ -75,6 +76,12 @@ class Dashboard extends BaseController
                 ->where('DATE(created_at)', $date)
                 ->countAllResults();
             $dailyNewRestaurants[] = $restoCount;
+
+            // Langganan baru per hari
+            $subscriptionCount = $db->table('restaurant_subscriptions')
+                ->where('DATE(start_date)', $date)
+                ->countAllResults();
+            $dailyNewSubscriptions[] = $subscriptionCount;
         }
 
         // 2. Grafik Bulanan (6 Bulan Terakhir)
@@ -107,6 +114,7 @@ class Dashboard extends BaseController
             'dailyLabels'           => $dailyLabels,
             'dailyNewLeads'         => $dailyNewLeads,
             'dailyNewRestaurants'   => $dailyNewRestaurants,
+            'dailyNewSubscriptions' => $dailyNewSubscriptions,
             'monthlyLabels'         => $monthlyLabels,
             'monthlyRevenueData'    => $monthlyRevenueData,
         ]);

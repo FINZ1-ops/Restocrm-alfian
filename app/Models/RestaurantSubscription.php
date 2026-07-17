@@ -28,7 +28,8 @@ class RestaurantSubscription extends Model
     // Field yang boleh di-insert/update
     protected $allowedFields = [
         'restaurant_id', 'plan_id', 'start_date', 'end_date',
-        'status', 'billing_cycle', 'is_active'
+        'status', 'billing_cycle', 'is_active',
+        'next_invoice_date', 'last_invoice_id'
     ];
     
     // Gunakan timestamp otomatis
@@ -63,12 +64,30 @@ class RestaurantSubscription extends Model
      */
     public function getSubscriptionWithPlan($restaurantId)
     {
-        return $this->db->table('restaurant_subscriptions rs')
+        $builder = $this->db->table('restaurant_subscriptions rs')
                         ->select('rs.*, sp.name as plan_name, sp.max_tables, sp.max_menus, sp.has_crm')
                         ->join('subscription_plans sp', 'rs.plan_id = sp.id')
-                        ->where('rs.restaurant_id', $restaurantId)
-                        ->where('rs.is_active', true)
-                        ->get();
+                        ->where('rs.restaurant_id', $restaurantId);
+
+        if ($this->hasColumn('is_active')) {
+            $builder->where('rs.is_active', true);
+        }
+
+        return $builder->get();
+    }
+
+    /**
+     * Check whether the restaurant_subscriptions table contains a column.
+     */
+    public function hasColumn(string $column): bool
+    {
+        try {
+            $table = $this->db->DBPrefix . $this->table;
+            $result = $this->db->query("SHOW COLUMNS FROM {$table} LIKE ?", [$column])->getResultArray();
+            return !empty($result);
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     /**
@@ -139,8 +158,11 @@ class RestaurantSubscription extends Model
             'end_date' => date('Y-m-d', strtotime("+{$trialDays} days")),
             'status' => 'Trial',
             'billing_cycle' => 'monthly',
-            'is_active' => true,
         ];
+
+        if ($this->hasColumn('is_active')) {
+            $data['is_active'] = true;
+        }
 
         return $this->insert($data);
     }
@@ -188,10 +210,12 @@ class RestaurantSubscription extends Model
             return false;
         }
 
-        return $this->update($subscription['id'], [
-            'status' => 'Suspend',
-            'is_active' => false,
-        ]);
+        $update = ['status' => 'Suspend'];
+        if ($this->hasColumn('is_active')) {
+            $update['is_active'] = false;
+        }
+
+        return $this->update($subscription['id'], $update);
     }
 
     /**
@@ -210,9 +234,11 @@ class RestaurantSubscription extends Model
             return false;
         }
 
-        return $this->update($subscription['id'], [
-            'status' => 'Aktif',
-            'is_active' => true,
-        ]);
+        $update = ['status' => 'Aktif'];
+        if ($this->hasColumn('is_active')) {
+            $update['is_active'] = true;
+        }
+
+        return $this->update($subscription['id'], $update);
     }
 }

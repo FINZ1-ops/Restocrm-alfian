@@ -30,6 +30,7 @@ if ($role === 'super_admin') {
     $navItems = [
         ['url' => '/resto/dashboard',     'icon' => 'bi-grid-1x2-fill',   'label' => 'Dashboard'],
         ['url' => '/resto/profile',       'icon' => 'bi-shop',            'label' => 'Resto Profile'],
+        ['url' => '/resto/subscriptions', 'icon' => 'bi-box-seam',        'label' => 'Langganan'],
         ['url' => '/resto/categories',    'icon' => 'bi-tags',            'label' => 'Categories'],
         ['url' => '/resto/menus',         'icon' => 'bi-cup-hot',         'label' => 'Menu'],
         ['url' => '/resto/tables',        'icon' => 'bi-qr-code-scan',    'label' => 'Tables & QR'],

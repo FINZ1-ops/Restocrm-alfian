@@ -28,6 +28,15 @@ class Validation extends BaseConfig
     ];
 
     /**
+     * Custom validation rules.
+     *
+     * @var array<string, string>
+     */
+    public array $ruleAliases = [
+        'unique_plan_name' => \App\Validation\CustomRules::class . '::unique_plan_name',
+    ];
+
+    /**
      * Specifies the views that are used to display the
      * errors.
      *

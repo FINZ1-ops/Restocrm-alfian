@@ -5,12 +5,7 @@ namespace App\Models;
 use CodeIgniter\Model;
 
 /**
- * SubscriptionPayment Model
- *
- * Pembayaran langganan APLIKASI dari restoran ke pemilik RESTOCRM —
- * BEDA dengan Payment (pembayaran order customer ke restoran).
- * Dikelola sepenuhnya oleh Super Admin, lintas-restoran, jadi TIDAK
- * extends BaseRestaurantModel (sama seperti RestaurantSubscription).
+ * Model untuk invoice pembayaran langganan aplikasi.
  */
 class SubscriptionPayment extends Model
 {
@@ -29,7 +24,7 @@ class SubscriptionPayment extends Model
     ];
 
     /**
-     * Bikin nomor invoice unik: INV-YYYYMMDD-XXXX
+     * Generate a unique invoice number in the format INV-YYYYMMDD-XXXX.
      */
     public function generateInvoiceNumber(): string
     {
@@ -42,11 +37,8 @@ class SubscriptionPayment extends Model
     }
 
     /**
-     * Semua invoice + info restoran & plan, terbaru dulu.
-     * Filter opsional lewat $status (mis. 'Belum Dibayar').
-     *
-     * Catatan: param ke-4 join = false supaya COALESCE tidak di-escape
-     * Query Builder jadi nama kolom (penyebab error #1054).
+     * Retrieve all invoices with restaurant and plan details.
+     * Optional status filter can narrow the result set.
      */
     public function getAllWithDetails(?string $status = null): array
     {
@@ -64,7 +56,7 @@ class SubscriptionPayment extends Model
     }
 
     /**
-     * Invoice yang jatuh tempo: belum lunas & due_date sudah lewat hari ini.
+     * Retrieve overdue invoices that are past due and not yet paid.
      */
     public function getOverdue(): array
     {
@@ -80,7 +72,92 @@ class SubscriptionPayment extends Model
     }
 
     /**
-     * Detail 1 invoice + info restoran & subscription terkait.
+     * Check whether the restaurant_subscriptions table contains a column.
+     */
+    public function subscriptionHasColumn(string $column): bool
+    {
+        try {
+            $table = $this->db->DBPrefix . 'restaurant_subscriptions';
+            $result = $this->db->query("SHOW COLUMNS FROM {$table} LIKE ?", [$column])->getResultArray();
+            return !empty($result);
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Create invoices for active subscriptions due for renewal.
+     */
+    public function generateInvoicesFromDueSubscriptions(): void
+    {
+        $today = date('Y-m-d');
+
+        if (! $this->subscriptionHasColumn('next_invoice_date')) {
+            return;
+        }
+
+        $subscriptions = $this->db->table('restaurant_subscriptions rs')
+            ->select('rs.*, sp.price_monthly, sp.price_yearly, sp.name as plan_name')
+            ->join('subscription_plans sp', 'sp.id = rs.plan_id', 'left')
+            ->where('rs.status', 'Aktif')
+            ->where('rs.next_invoice_date <=', $today)
+            ->get()
+            ->getResultArray();
+
+        foreach ($subscriptions as $subscription) {
+            $existing = $this->where('subscription_id', $subscription['id'])
+                ->whereIn('status', ['Belum Dibayar', 'Menunggu Konfirmasi', 'Terlambat'])
+                ->orderBy('created_at', 'DESC')
+                ->first();
+
+            if ($existing) {
+                continue;
+            }
+
+            $amount = $subscription['billing_cycle'] === 'yearly'
+                ? $subscription['price_yearly']
+                : $subscription['price_monthly'];
+
+            $dueDate = date('Y-m-d', strtotime('+7 days'));
+            $nextInvoiceDate = date('Y-m-d', strtotime($subscription['next_invoice_date'] . ' ' . ($subscription['billing_cycle'] === 'yearly' ? '+1 year' : '+1 month')));
+
+            $invoiceData = [
+                'restaurant_id'   => $subscription['restaurant_id'],
+                'subscription_id' => $subscription['id'],
+                'invoice_number'  => $this->generateInvoiceNumber(),
+                'amount'          => $amount,
+                'status'          => 'Belum Dibayar',
+                'due_date'        => $dueDate,
+                'notes'           => 'Invoice otomatis untuk perpanjangan langganan ' . ($subscription['billing_cycle'] === 'yearly' ? 'tahunan' : 'bulanan') . '.',
+            ];
+
+            $paymentId = $this->insert($invoiceData);
+            if (!$paymentId) {
+                continue;
+            }
+
+            $this->db->table('restaurant_subscriptions')
+                ->where('id', $subscription['id'])
+                ->update([
+                    'last_invoice_id'   => $paymentId,
+                    'next_invoice_date' => $nextInvoiceDate,
+                ]);
+        }
+    }
+
+    /**
+     * Update invoices to 'Terlambat' when payment is past due.
+     */
+    public function markOverdueInvoices(): void
+    {
+        $this->db->table('subscription_payments')
+            ->whereIn('status', ['Belum Dibayar', 'Menunggu Konfirmasi'])
+            ->where('due_date <', date('Y-m-d'))
+            ->update(['status' => 'Terlambat']);
+    }
+
+    /**
+     * Get invoice details including restaurant and related subscription.
      */
     public function getWithDetails(int $id): ?array
     {

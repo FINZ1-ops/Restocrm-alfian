@@ -10,6 +10,7 @@
 /** @var array $dailyLabels */
 /** @var array $dailyNewLeads */
 /** @var array $dailyNewRestaurants */
+/** @var array $dailyNewSubscriptions */
 /** @var array $monthlyLabels */
 /** @var array $monthlyRevenueData */
 
@@ -48,6 +49,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     data: <?= json_encode($dailyNewRestaurants ?? []) ?>,
                     borderColor: '#3b82f6',
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Langganan baru',
+                    data: <?= json_encode($dailyNewSubscriptions ?? []) ?>,
+                    borderColor: '#b18903',
+                    backgroundColor: 'rgba(4, 43, 107, 0.1)',
                     borderWidth: 2,
                     tension: 0.4,
                     fill: true

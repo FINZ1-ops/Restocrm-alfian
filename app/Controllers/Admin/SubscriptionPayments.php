@@ -9,9 +9,7 @@ use App\Models\RestaurantSubscription;
 use App\Models\SubscriptionPlan;
 
 /**
- * Pembayaran LANGGANAN APLIKASI — dari restoran ke pemilik RESTOCRM.
- * BEDA dengan Cashier\Orders (pembayaran order customer ke restoran).
- * Hanya bisa diakses Super Admin (lihat Routes.php: filter role:super_admin).
+ * Manages application subscription invoices for Super Admin.
  */
 class SubscriptionPayments extends BaseController
 {
@@ -29,12 +27,19 @@ class SubscriptionPayments extends BaseController
     }
 
     /**
-     * Daftar semua invoice pembayaran langganan, terbaru dulu.
-     * Filter opsional: ?status=Belum+Dibayar
+     * List all subscription invoices, optionally filtered by status.
      */
     public function index()
     {
-        $status   = $this->request->getGet('status');
+        $status = $this->request->getGet('status');
+
+        try {
+            $this->paymentModel->generateInvoicesFromDueSubscriptions();
+            $this->paymentModel->markOverdueInvoices();
+        } catch (\Throwable $e) {
+            log_message('error', 'Auto invoice generation skipped: ' . $e->getMessage());
+        }
+
         $payments = $this->paymentModel->getAllWithDetails($status ?: null);
 
         $content = view('admin/subscription-payments/index', [
@@ -46,10 +51,17 @@ class SubscriptionPayments extends BaseController
     }
 
     /**
-     * Invoice yang sudah lewat jatuh tempo & belum lunas.
+     * List overdue subscription invoices.
      */
     public function overdue()
     {
+        try {
+            $this->paymentModel->generateInvoicesFromDueSubscriptions();
+            $this->paymentModel->markOverdueInvoices();
+        } catch (\Throwable $e) {
+            log_message('error', 'Auto invoice generation skipped: ' . $e->getMessage());
+        }
+
         $payments = $this->paymentModel->getOverdue();
 
         $content = view('admin/subscription-payments/index', [
@@ -61,7 +73,7 @@ class SubscriptionPayments extends BaseController
     }
 
     /**
-     * Form buat invoice baru.
+     * Show form for creating a new invoice.
      */
     public function new()
     {
@@ -76,7 +88,7 @@ class SubscriptionPayments extends BaseController
     }
 
     /**
-     * Simpan invoice baru. Nomor invoice digenerate otomatis.
+     * Store a new subscription invoice.
      */
     public function create()
     {
@@ -109,23 +121,27 @@ class SubscriptionPayments extends BaseController
         }
         $amount = $billingCycle === 'yearly' ? $plan['price_yearly'] : $plan['price_monthly'];
 
-        // Ambil / buat subscription resto, lalu samakan plan & cycle
-        // dengan pilihan di form invoice.
+        // Load existing subscription or create a new one for this restaurant.
         $subscription = $this->subscriptionModel
             ->where('restaurant_id', $restaurantId)
             ->orderBy('id', 'DESC')
             ->first();
 
         if (!$subscription) {
-            $subscriptionId = $this->subscriptionModel->insert([
+            $subData = [
                 'restaurant_id' => $restaurantId,
                 'plan_id'       => $planId,
                 'start_date'    => date('Y-m-d'),
                 'end_date'      => date('Y-m-d'),
                 'status'        => 'Trial',
                 'billing_cycle' => $billingCycle,
-                'is_active'     => 1,
-            ]);
+            ];
+
+            if ($this->subscriptionModel->hasColumn('is_active')) {
+                $subData['is_active'] = 1;
+            }
+
+            $subscriptionId = $this->subscriptionModel->insert($subData);
         } else {
             $subscriptionId = (int) $subscription['id'];
             $this->subscriptionModel->update($subscriptionId, [
@@ -152,12 +168,17 @@ class SubscriptionPayments extends BaseController
             return redirect()->back()->withInput()->with('error', 'Gagal membuat invoice.');
         }
 
+        $this->subscriptionModel->update($subscriptionId, [
+            'next_invoice_date' => $this->request->getPost('due_date'),
+            'last_invoice_id'   => $paymentId,
+        ]);
+
         return redirect()->to('/admin/subscription-payments/' . $paymentId)
             ->with('success', 'Invoice berhasil dibuat.');
     }
 
     /**
-     * Detail 1 invoice.
+     * Display invoice details.
      */
     public function view($id = null)
     {
@@ -171,8 +192,7 @@ class SubscriptionPayments extends BaseController
     }
 
     /**
-     * Super Admin upload bukti pembayaran (mis. bukti transfer yang
-     * dikirim resto lewat WhatsApp) → status jadi Menunggu Konfirmasi.
+     * Upload payment proof and set invoice status to Menunggu Konfirmasi.
      */
     public function uploadProof($id = null)
     {
@@ -205,7 +225,7 @@ class SubscriptionPayments extends BaseController
     }
 
     /**
-     * Konfirmasi lunas → status Lunas + perpanjang restaurant_subscriptions.
+     * Confirm payment and extend the related restaurant subscription.
      */
     public function confirm($id = null)
     {
@@ -221,9 +241,7 @@ class SubscriptionPayments extends BaseController
             'confirmed_at' => date('Y-m-d H:i:s'),
         ]);
 
-        // Perpanjang langganan resto yang tertaut invoice ini.
-        // Tidak bergantung ke getActiveSubscription() supaya tetap
-        // bisa diperpanjang meski trial/langganan sudah lewat.
+        // Extend the linked subscription regardless of current status.
         if (!empty($payment['subscription_id'])) {
             $subscription = $this->subscriptionModel->find($payment['subscription_id']);
             if ($subscription) {
@@ -233,12 +251,16 @@ class SubscriptionPayments extends BaseController
                     ? $subscription['end_date']
                     : date('Y-m-d');
 
+                $newEndDate = date('Y-m-d', strtotime($baseDate . ' ' . $duration));
+
                 $this->subscriptionModel->update($subscription['id'], [
-                    'start_date'    => date('Y-m-d'),
-                    'end_date'      => date('Y-m-d', strtotime($baseDate . ' ' . $duration)),
-                    'billing_cycle' => $billingCycle,
-                    'status'        => 'Aktif',
-                    'is_active'     => 1,
+                    'start_date'        => date('Y-m-d'),
+                    'end_date'          => $newEndDate,
+                    'billing_cycle'     => $billingCycle,
+                    'status'            => 'Aktif',
+                    'is_active'         => 1,
+                    'next_invoice_date' => $newEndDate,
+                    'last_invoice_id'   => $id,
                 ]);
             }
         }
@@ -248,7 +270,7 @@ class SubscriptionPayments extends BaseController
     }
 
     /**
-     * Tolak pembayaran → status Ditolak, dengan alasan di notes.
+     * Reject payment and save the rejection reason.
      */
     public function reject($id = null)
     {

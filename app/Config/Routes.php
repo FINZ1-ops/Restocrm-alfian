@@ -73,7 +73,7 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
 
         // Subscription Plans Management
         $routes->resource('plans', ['controller' => 'Admin\SubscriptionPlans']);
-        // Hapus via POST (lebih andal daripada method spoofing DELETE di form HTML)
+        $routes->post('plans/(:num)', 'Admin\SubscriptionPlans::update/$1');
         $routes->post('plans/(:num)/delete', 'Admin\SubscriptionPlans::delete/$1');
 
         // Subscription Payments
@@ -99,6 +99,9 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     $routes->group('resto', ['filter' => 'role:admin_resto'], function($routes) {
         // Core Management
         $routes->match(['get', 'post'], 'profile', 'RestaurantAdmin\Profile::edit');
+        $routes->get('subscriptions', 'RestaurantAdmin\Subscriptions::index');
+        $routes->get('subscriptions/new', 'RestaurantAdmin\Subscriptions::new');
+        $routes->post('subscriptions', 'RestaurantAdmin\Subscriptions::create');
         $routes->resource('categories', ['controller' => 'RestaurantAdmin\MenuCategories']);
         $routes->resource('menus', ['controller' => 'RestaurantAdmin\Menus']);
         $routes->resource('staff', ['controller' => 'RestaurantAdmin\Staff']);

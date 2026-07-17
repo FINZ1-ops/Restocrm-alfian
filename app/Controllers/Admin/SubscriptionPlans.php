@@ -30,12 +30,18 @@ class SubscriptionPlans extends BaseController
     public function create()
     {
         $rules = [
-            'name'          => 'required|min_length[2]|max_length[100]|is_unique[subscription_plans.name]',
+            'name' => 'required|min_length[2]|max_length[100]|is_unique[subscription_plans.name]',
             'price_monthly' => 'required|numeric',
             'price_yearly'  => 'required|numeric',
             'max_tables'    => 'required|integer',
             'max_menus'     => 'required|integer',
         ];
+
+        // $messages = [
+        //     'name' => [
+        //         'unique_plan_name' => 'Nama paket harus unik.',
+        //     ],
+        // ];
 
         if (!$this->validate($rules)) {
             $content = view('admin/plans/form', [
@@ -83,12 +89,18 @@ class SubscriptionPlans extends BaseController
         }
 
         $rules = [
-            'name'          => "required|min_length[2]|max_length[100]|is_unique[subscription_plans.name,id,{$id}]",
+            'name' => "required|min_length[2]|max_length[100]|is_unique[subscription_plans.name,id,{$id}]",
             'price_monthly' => 'required|numeric',
             'price_yearly'  => 'required|numeric',
             'max_tables'    => 'required|integer',
             'max_menus'     => 'required|integer',
         ];
+
+        // $messages = [
+        //     'name' => [
+        //         'unique_plan_name' => 'Nama paket harus unik.',
+        //     ],
+        // ];
 
         if (!$this->validate($rules)) {
             $content = view('admin/plans/form', [
@@ -120,9 +132,9 @@ class SubscriptionPlans extends BaseController
             return redirect()->to('/admin/plans')->with('error', 'Paket tidak ditemukan');
         }
 
-        // Soft delete — restoran yang sudah pakai paket ini tetap aman
-        // karena baris paket tidak dihapus fisik dari database.
-        if (!$this->planModel->delete($id)) {
+        // Perform permanent delete (purge) so the plan row is removed from DB.
+        // Use Model::delete($id, true) to bypass soft deletes.
+        if (!$this->planModel->delete($id, true)) {
             return redirect()->to('/admin/plans')->with('error', 'Gagal menghapus paket. Coba lagi.');
         }
 

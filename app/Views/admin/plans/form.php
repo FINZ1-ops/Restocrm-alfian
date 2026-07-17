@@ -13,14 +13,15 @@
  *   $errors — array pesan validasi (jika ada)
  *   $old   — input lama untuk repopulate form saat validasi gagal
  */
-$plan   = $plan ?? null;
+$plan   = $plan ?? [];
 $old    = $old ?? [];
-$isEdit = !empty($plan) && is_array($plan);
-$title  = $isEdit ? ('Edit Paket: ' . esc($plan['name'])) : 'Tambah Paket Baru';
-$action = $isEdit ? ('/admin/plans/' . $plan['id']) : '/admin/plans';
+$isEdit = !empty($plan) && (is_array($plan) || is_object($plan));
+$planData = is_object($plan) ? (array) $plan : $plan;
+$title  = $isEdit ? ('Edit Paket: ' . esc($planData['name'] ?? '')) : 'Tambah Paket Baru';
+$action = $isEdit ? ('/admin/plans/' . ($planData['id'] ?? '')) : '/admin/plans';
 
 // Helper: ambil nilai lama saat validasi gagal, fallback ke data plan, lalu default
-$val = fn($field, $default = '') => old($field, $plan[$field] ?? $old[$field] ?? $default);
+$val = fn($field, $default = '') => old($field, $planData[$field] ?? $old[$field] ?? $default);
 ?>
 
 <!-- Header -->
