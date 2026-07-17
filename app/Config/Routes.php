@@ -73,6 +73,8 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
 
         // Subscription Plans Management
         $routes->resource('plans', ['controller' => 'Admin\SubscriptionPlans']);
+        // Hapus via POST (lebih andal daripada method spoofing DELETE di form HTML)
+        $routes->post('plans/(:num)/delete', 'Admin\SubscriptionPlans::delete/$1');
 
         // Subscription Payments
         $routes->get('subscription-payments', 'Admin\SubscriptionPayments::index');

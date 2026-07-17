@@ -11,6 +11,19 @@
  * Laporan harian — ringkasan, top menu, dan daftar order pada tanggal tertentu
  */
 ob_start();
+
+// Group orders by hour (00 to 23)
+$hourlyData = array_fill(0, 24, 0);
+foreach ($orders as $o) {
+    if ($o['payment_status'] === 'Lunas') {
+        $hour = (int)date('H', strtotime($o['created_at']));
+        $hourlyData[$hour] += (float)$o['total'];
+    }
+}
+$hourlyLabels = [];
+for ($i=0; $i<24; $i++) {
+    $hourlyLabels[] = sprintf('%02d:00', $i);
+}
 ?>
 <style>
     .report-stats {
@@ -102,6 +115,18 @@ ob_start();
     </div>
 </div>
 
+<!-- Grafik pendapatan per jam -->
+<div class="report-section">
+    <div class="report-section-title">Grafik Pendapatan per Jam</div>
+    <?php if (empty($orders)): ?>
+        <div class="text-center text-muted py-4">Tidak ada data transaksi hari ini.</div>
+    <?php else: ?>
+        <div style="position: relative; height: 280px;">
+            <canvas id="hourlyChart"></canvas>
+        </div>
+    <?php endif; ?>
+</div>
+
 <div class="row g-4">
     <!-- Top menu hari ini -->
     <div class="col-lg-5">
@@ -185,4 +210,77 @@ ob_start();
         </div>
     </div>
 </div>
+
+<?php if (!empty($orders)): ?>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const ctx = document.getElementById('hourlyChart').getContext('2d');
+
+let gradient = ctx.createLinearGradient(0, 0, 0, 300);
+gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)'); // Blue gradient for daily
+gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: <?= json_encode($hourlyLabels) ?>,
+        datasets: [{
+            label: 'Pendapatan (Rp)',
+            data: <?= json_encode($hourlyData) ?>,
+            backgroundColor: gradient,
+            borderColor: '#3b82f6',
+            borderWidth: 3,
+            pointBackgroundColor: '#ffffff',
+            pointBorderColor: '#3b82f6',
+            pointBorderWidth: 2,
+            pointRadius: 3,
+            pointHoverRadius: 6,
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                titleFont: { size: 13, family: "'Plus Jakarta Sans', sans-serif" },
+                bodyFont: { size: 14, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
+                padding: 12,
+                cornerRadius: 8,
+                displayColors: false,
+                callbacks: {
+                    label: ctx => 'Rp ' + Number(ctx.raw).toLocaleString('id-ID')
+                }
+            }
+        },
+        scales: {
+            x: {
+                grid: { display: false },
+                border: { display: false },
+                ticks: { font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 }, color: '#64748b' }
+            },
+            y: {
+                beginAtZero: true,
+                border: { dash: [5, 5], display: false },
+                grid: { color: '#f1f5f9' },
+                ticks: {
+                    font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },
+                    color: '#64748b',
+                    callback: v => 'Rp ' + (v/1000).toLocaleString('id-ID') + 'k',
+                    maxTicksLimit: 6
+                }
+            }
+        }
+    }
+});
+</script>
+<?php endif; ?>
+
 <?= ob_get_clean() ?>

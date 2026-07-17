@@ -76,7 +76,10 @@ $statusList = array_keys($statusColors);
                                 </td>
                                 <td>
                                     <div class="fw-semibold text-dark"><?= esc($p['restaurant_name'] ?? '-') ?></div>
-                                    <div class="text-muted small"><?= esc($p['restaurant_whatsapp'] ?? '') ?></div>
+                                    <div class="text-muted small">
+                                        <?= esc($p['plan_name'] ?? '') ?>
+                                        <?= !empty($p['restaurant_whatsapp']) ? ' · ' . esc($p['restaurant_whatsapp']) : '' ?>
+                                    </div>
                                 </td>
                                 <td class="fw-semibold text-dark">Rp <?= number_format((float)($p['amount'] ?? 0), 0, ',', '.') ?></td>
                                 <td>

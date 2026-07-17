@@ -109,12 +109,22 @@
                         </div>
                     </div>
                 </div>
-                <!-- Tombol edit di footer kartu -->
+                <!-- Tombol edit & hapus di footer kartu -->
                 <div class="card-footer bg-transparent border-0 px-4 pb-4">
-                    <a href="/admin/plans/<?= $plan['id'] ?>/edit"
-                       class="btn btn-sm btn-outline-<?= $color ?> w-100 rounded-pill">
-                        <i class="bi bi-pencil me-1"></i>Edit Paket
-                    </a>
+                    <div class="d-flex gap-2">
+                        <a href="/admin/plans/<?= $plan['id'] ?>/edit"
+                           class="btn btn-sm btn-outline-<?= $color ?> flex-grow-1 rounded-pill">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </a>
+                        <form method="POST" action="/admin/plans/<?= $plan['id'] ?>/delete"
+                              class="flex-grow-1"
+                              onsubmit="return confirm('Hapus paket <?= esc(addslashes($plan['name'])) ?>? Restoran yang sudah memakai paket ini tidak akan terpengaruh.')">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-sm btn-outline-danger w-100 rounded-pill">
+                                <i class="bi bi-trash me-1"></i>Hapus
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -187,12 +197,11 @@
                                        data-bs-toggle="tooltip" title="Edit Paket">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <form method="POST" action="/admin/plans/<?= $plan['id'] ?>"
+                                    <form method="POST" action="/admin/plans/<?= $plan['id'] ?>/delete"
                                           class="d-inline"
-                                          onsubmit="return confirm('Hapus paket <?= esc($plan['name']) ?>? Restoran yang memakai paket ini tidak akan terpengaruh.')">
+                                          onsubmit="return confirm('Hapus paket <?= esc(addslashes($plan['name'])) ?>? Restoran yang memakai paket ini tidak akan terpengaruh.')">
                                         <?= csrf_field() ?>
-                                        <input type="hidden" name="_method" value="DELETE">
-                                        <button class="btn btn-sm btn-light text-danger rounded-circle"
+                                        <button type="submit" class="btn btn-sm btn-light text-danger rounded-circle"
                                                 data-bs-toggle="tooltip" title="Hapus Paket">
                                             <i class="bi bi-trash"></i>
                                         </button>

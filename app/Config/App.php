@@ -16,7 +16,7 @@ class App extends BaseConfig
      *
      * E.g., http://example.com/
      */
-    public string $baseURL = 'https://192.168.90.111:8443/';//ip milikmu
+    public string $baseURL = 'https://192.168.90.105:8443/';//ip milikmu
 
     /**
      * Allowed Hostnames in the Site URL other than the hostname in the baseURL.

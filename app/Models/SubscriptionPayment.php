@@ -44,13 +44,17 @@ class SubscriptionPayment extends Model
     /**
      * Semua invoice + info restoran & plan, terbaru dulu.
      * Filter opsional lewat $status (mis. 'Belum Dibayar').
+     *
+     * Catatan: param ke-4 join = false supaya COALESCE tidak di-escape
+     * Query Builder jadi nama kolom (penyebab error #1054).
      */
     public function getAllWithDetails(?string $status = null): array
     {
         $builder = $this->db->table('subscription_payments sp')
-            ->select('sp.*, r.name as restaurant_name, r.whatsapp as restaurant_whatsapp, sub.plan_id, sub.restaurant_id as sub_restaurant_id')
+            ->select('sp.*, r.name as restaurant_name, r.whatsapp as restaurant_whatsapp, sub.plan_id, sub.restaurant_id as sub_restaurant_id, p.name as plan_name')
             ->join('restaurant_subscriptions sub', 'sub.id = sp.subscription_id', 'left')
-            ->join('restaurants r', 'r.id = COALESCE(sp.restaurant_id, sub.restaurant_id)', 'left');
+            ->join('subscription_plans p', 'p.id = sub.plan_id', 'left')
+            ->join('restaurants r', 'r.id = COALESCE(sp.restaurant_id, sub.restaurant_id)', 'left', false);
 
         if ($status) {
             $builder->where('sp.status', $status);
@@ -65,9 +69,10 @@ class SubscriptionPayment extends Model
     public function getOverdue(): array
     {
         return $this->db->table('subscription_payments sp')
-            ->select('sp.*, r.name as restaurant_name, r.whatsapp as restaurant_whatsapp')
+            ->select('sp.*, r.name as restaurant_name, r.whatsapp as restaurant_whatsapp, p.name as plan_name')
             ->join('restaurant_subscriptions sub', 'sub.id = sp.subscription_id', 'left')
-            ->join('restaurants r', 'r.id = COALESCE(sp.restaurant_id, sub.restaurant_id)', 'left')
+            ->join('subscription_plans p', 'p.id = sub.plan_id', 'left')
+            ->join('restaurants r', 'r.id = COALESCE(sp.restaurant_id, sub.restaurant_id)', 'left', false)
             ->whereIn('sp.status', ['Belum Dibayar', 'Menunggu Konfirmasi', 'Terlambat'])
             ->where('sp.due_date <', date('Y-m-d'))
             ->orderBy('sp.due_date', 'ASC')
@@ -80,9 +85,10 @@ class SubscriptionPayment extends Model
     public function getWithDetails(int $id): ?array
     {
         return $this->db->table('subscription_payments sp')
-            ->select('sp.*, r.name as restaurant_name, r.whatsapp as restaurant_whatsapp, r.address as restaurant_address, rs.plan_id, rs.billing_cycle, rs.end_date as subscription_end_date')
+            ->select('sp.*, r.name as restaurant_name, r.whatsapp as restaurant_whatsapp, r.address as restaurant_address, rs.plan_id, rs.billing_cycle, rs.end_date as subscription_end_date, p.name as plan_name')
             ->join('restaurant_subscriptions rs', 'rs.id = sp.subscription_id', 'left')
-            ->join('restaurants r', 'r.id = COALESCE(sp.restaurant_id, rs.restaurant_id)', 'left')
+            ->join('subscription_plans p', 'p.id = rs.plan_id', 'left')
+            ->join('restaurants r', 'r.id = COALESCE(sp.restaurant_id, rs.restaurant_id)', 'left', false)
             ->where('sp.id', $id)
             ->get()->getRowArray();
     }

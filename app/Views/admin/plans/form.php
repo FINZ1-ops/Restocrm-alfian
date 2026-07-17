@@ -2,6 +2,7 @@
 /**
  * @var mixed $errors
  * @var mixed $old
+ * @var mixed $plan
  * @var mixed $field
  */
 /**
@@ -12,18 +13,11 @@
  *   $errors — array pesan validasi (jika ada)
  *   $old   — input lama untuk repopulate form saat validasi gagal
  */
-// Tentukan apakah mode edit atau tambah baru
-$plan  = [];
-$isEdit = !empty($plan);
- if ($isEdit) {
-        $title = 'Edit Paket: ' . esc($plan['name']);
-    } else {
-        $title = 'Tambah Paket Baru';}
-
- if ($isEdit) {
-        $action = '/admin/plans/' . $plan['id'];
-    } else {
-        $action = '/admin/plans';}
+$plan   = $plan ?? null;
+$old    = $old ?? [];
+$isEdit = !empty($plan) && is_array($plan);
+$title  = $isEdit ? ('Edit Paket: ' . esc($plan['name'])) : 'Tambah Paket Baru';
+$action = $isEdit ? ('/admin/plans/' . $plan['id']) : '/admin/plans';
 
 // Helper: ambil nilai lama saat validasi gagal, fallback ke data plan, lalu default
 $val = fn($field, $default = '') => old($field, $plan[$field] ?? $old[$field] ?? $default);

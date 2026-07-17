@@ -25,10 +25,14 @@ class SubscriptionPlan extends Model
     // Return type data (array)
     protected $returnType = 'array';
     
+    // Gunakan soft delete agar restaurant subscription tidak cascade terhapus
+    protected $useSoftDeletes = true;
+    protected $deletedField = 'deleted_at';
+    
     // Field yang boleh di-insert/update
     protected $allowedFields = [
         'name', 'description', 'max_tables', 'max_menus', 'has_crm',
-        'price_monthly', 'price_yearly', 'is_active'
+        'price_monthly', 'price_yearly', 'is_active', 'deleted_at'
     ];
     
     // Gunakan timestamp otomatis

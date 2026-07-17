@@ -5,6 +5,10 @@
  * @var mixed $errors
  * @var mixed $old
  */
+$old = $old ?? [];
+$val = static function (string $key, $default = '') use ($old) {
+    return $old[$key] ?? old($key) ?? $default;
+};
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -32,7 +36,7 @@
                 <select name="restaurant_id" class="form-select rounded-3" required>
                     <option value="">-- Pilih restoran --</option>
                     <?php foreach ($restaurants as $r): ?>
-                        <option value="<?= $r['id'] ?>" <?= (old('restaurant_id') ?? '') == $r['id'] ? 'selected' : '' ?>>
+                        <option value="<?= $r['id'] ?>" <?= (string) $val('restaurant_id') === (string) $r['id'] ? 'selected' : '' ?>>
                             <?= esc($r['name']) ?>
                         </option>
                     <?php endforeach; ?>
@@ -45,8 +49,8 @@
                     <select name="plan_id" class="form-select rounded-3" required>
                         <option value="">-- Pilih paket --</option>
                         <?php foreach ($plans as $p): ?>
-                            <option value="<?= $p['id'] ?>" <?= (old('plan_id') ?? '') == $p['id'] ? 'selected' : '' ?>>
-                                <?= esc($p['name']) ?> — Rp <?= number_format($p['price_monthly'], 0, ',', '.') ?>/bulan
+                            <option value="<?= $p['id'] ?>" <?= (string) $val('plan_id') === (string) $p['id'] ? 'selected' : '' ?>>
+                                <?= esc($p['name']) ?> — Rp <?= number_format((float) $p['price_monthly'], 0, ',', '.') ?>/bulan
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -54,8 +58,8 @@
                 <div class="col-md-6 mb-3">
                     <label class="form-label fw-semibold">Siklus Tagihan</label>
                     <select name="billing_cycle" class="form-select rounded-3" required>
-                        <option value="monthly" <?= old('billing_cycle') === 'monthly' ? 'selected' : '' ?>>Bulanan</option>
-                        <option value="yearly" <?= old('billing_cycle') === 'yearly' ? 'selected' : '' ?>>Tahunan</option>
+                        <option value="monthly" <?= $val('billing_cycle', 'monthly') === 'monthly' ? 'selected' : '' ?>>Bulanan</option>
+                        <option value="yearly" <?= $val('billing_cycle') === 'yearly' ? 'selected' : '' ?>>Tahunan</option>
                     </select>
                 </div>
             </div>
@@ -63,12 +67,12 @@
             <div class="mb-3">
                 <label class="form-label fw-semibold">Tanggal Jatuh Tempo</label>
                 <input type="date" name="due_date" class="form-control rounded-3"
-                       value="<?= old('due_date') ?? date('Y-m-d', strtotime('+7 days')) ?>" required>
+                       value="<?= esc($val('due_date', date('Y-m-d', strtotime('+7 days')))) ?>" required>
             </div>
 
             <div class="mb-4">
                 <label class="form-label fw-semibold">Catatan (opsional)</label>
-                <textarea name="notes" class="form-control rounded-3" rows="3"><?= old('notes') ?></textarea>
+                <textarea name="notes" class="form-control rounded-3" rows="3"><?= esc($val('notes')) ?></textarea>
             </div>
 
             <button type="submit" class="btn btn-primary rounded-pill px-4 fw-medium">

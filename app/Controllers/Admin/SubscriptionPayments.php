@@ -109,11 +109,13 @@ class SubscriptionPayments extends BaseController
         }
         $amount = $billingCycle === 'yearly' ? $plan['price_yearly'] : $plan['price_monthly'];
 
-        // Ambil subscription aktif resto ini kalau ada, supaya invoice
-        // ini tertaut. Kalau belum punya subscription sama sekali
-        // (harusnya tidak terjadi karena setiap resto dibuat dengan
-        // Trial), buat dulu barunya.
-        $subscription = $this->subscriptionModel->where('restaurant_id', $restaurantId)->first();
+        // Ambil / buat subscription resto, lalu samakan plan & cycle
+        // dengan pilihan di form invoice.
+        $subscription = $this->subscriptionModel
+            ->where('restaurant_id', $restaurantId)
+            ->orderBy('id', 'DESC')
+            ->first();
+
         if (!$subscription) {
             $subscriptionId = $this->subscriptionModel->insert([
                 'restaurant_id' => $restaurantId,
@@ -122,9 +124,18 @@ class SubscriptionPayments extends BaseController
                 'end_date'      => date('Y-m-d'),
                 'status'        => 'Trial',
                 'billing_cycle' => $billingCycle,
+                'is_active'     => 1,
             ]);
         } else {
-            $subscriptionId = $subscription['id'];
+            $subscriptionId = (int) $subscription['id'];
+            $this->subscriptionModel->update($subscriptionId, [
+                'plan_id'       => $planId,
+                'billing_cycle' => $billingCycle,
+            ]);
+        }
+
+        if (!$subscriptionId) {
+            return redirect()->back()->withInput()->with('error', 'Gagal menyiapkan data langganan restoran.');
         }
 
         $paymentId = $this->paymentModel->insert([
@@ -136,6 +147,10 @@ class SubscriptionPayments extends BaseController
             'due_date'        => $this->request->getPost('due_date'),
             'notes'           => $this->request->getPost('notes'),
         ]);
+
+        if (!$paymentId) {
+            return redirect()->back()->withInput()->with('error', 'Gagal membuat invoice.');
+        }
 
         return redirect()->to('/admin/subscription-payments/' . $paymentId)
             ->with('success', 'Invoice berhasil dibuat.');
@@ -206,15 +221,25 @@ class SubscriptionPayments extends BaseController
             'confirmed_at' => date('Y-m-d H:i:s'),
         ]);
 
-        // Perpanjang langganan resto sesuai billing cycle subscription terkait.
+        // Perpanjang langganan resto yang tertaut invoice ini.
+        // Tidak bergantung ke getActiveSubscription() supaya tetap
+        // bisa diperpanjang meski trial/langganan sudah lewat.
         if (!empty($payment['subscription_id'])) {
             $subscription = $this->subscriptionModel->find($payment['subscription_id']);
             if ($subscription) {
-                $this->subscriptionModel->upgradeSubscription(
-                    $subscription['restaurant_id'],
-                    $subscription['plan_id'],
-                    $subscription['billing_cycle'] ?? 'monthly'
-                );
+                $billingCycle = $subscription['billing_cycle'] ?? 'monthly';
+                $duration     = $billingCycle === 'yearly' ? '+1 year' : '+1 month';
+                $baseDate     = (!empty($subscription['end_date']) && $subscription['end_date'] >= date('Y-m-d'))
+                    ? $subscription['end_date']
+                    : date('Y-m-d');
+
+                $this->subscriptionModel->update($subscription['id'], [
+                    'start_date'    => date('Y-m-d'),
+                    'end_date'      => date('Y-m-d', strtotime($baseDate . ' ' . $duration)),
+                    'billing_cycle' => $billingCycle,
+                    'status'        => 'Aktif',
+                    'is_active'     => 1,
+                ]);
             }
         }
 

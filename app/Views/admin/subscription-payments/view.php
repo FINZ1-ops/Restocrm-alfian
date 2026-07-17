@@ -35,6 +35,14 @@ $color = $statusColors[$payment['status']] ?? 'secondary';
                         <td class="fw-semibold"><?= esc($payment['restaurant_name'] ?? '-') ?></td>
                     </tr>
                     <tr>
+                        <td class="text-muted">Paket</td>
+                        <td><?= esc($payment['plan_name'] ?? '-') ?>
+                            <?php if (!empty($payment['billing_cycle'])): ?>
+                                <span class="text-muted small">(<?= $payment['billing_cycle'] === 'yearly' ? 'Tahunan' : 'Bulanan' ?>)</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
                         <td class="text-muted">WhatsApp</td>
                         <td><?= esc($payment['restaurant_whatsapp'] ?? '-') ?></td>
                     </tr>

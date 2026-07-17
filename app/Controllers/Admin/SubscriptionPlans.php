@@ -30,7 +30,7 @@ class SubscriptionPlans extends BaseController
     public function create()
     {
         $rules = [
-            'name'          => 'required|min_length[2]|max_length[100]',
+            'name'          => 'required|min_length[2]|max_length[100]|is_unique[subscription_plans.name]',
             'price_monthly' => 'required|numeric',
             'price_yearly'  => 'required|numeric',
             'max_tables'    => 'required|integer',
@@ -83,7 +83,7 @@ class SubscriptionPlans extends BaseController
         }
 
         $rules = [
-            'name'          => 'required|min_length[2]|max_length[100]',
+            'name'          => "required|min_length[2]|max_length[100]|is_unique[subscription_plans.name,id,{$id}]",
             'price_monthly' => 'required|numeric',
             'price_yearly'  => 'required|numeric',
             'max_tables'    => 'required|integer',
@@ -119,7 +119,14 @@ class SubscriptionPlans extends BaseController
         if (!$plan) {
             return redirect()->to('/admin/plans')->with('error', 'Paket tidak ditemukan');
         }
-        $this->planModel->delete($id);
-        return redirect()->to('/admin/plans')->with('success', 'Paket berhasil dihapus');
+
+        // Soft delete — restoran yang sudah pakai paket ini tetap aman
+        // karena baris paket tidak dihapus fisik dari database.
+        if (!$this->planModel->delete($id)) {
+            return redirect()->to('/admin/plans')->with('error', 'Gagal menghapus paket. Coba lagi.');
+        }
+
+        return redirect()->to('/admin/plans')
+            ->with('success', 'Paket "' . $plan['name'] . '" berhasil dihapus');
     }
 }

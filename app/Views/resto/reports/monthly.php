@@ -184,35 +184,67 @@ $chartOrders  = array_column($daily ?? [], 'total_orders');
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 const ctx = document.getElementById('revenueChart').getContext('2d');
+
+// Create vertical gradient for fill
+let gradient = ctx.createLinearGradient(0, 0, 0, 300);
+gradient.addColorStop(0, 'rgba(255, 195, 39, 0.5)');
+gradient.addColorStop(1, 'rgba(255, 195, 39, 0.0)');
+
 new Chart(ctx, {
-    type: 'bar',
+    type: 'line',
     data: {
         labels: <?= json_encode(array_map(fn($d) => date('d/m', strtotime($d)), $chartLabels)) ?>,
         datasets: [{
             label: 'Pendapatan (Rp)',
             data: <?= json_encode($chartRevenue) ?>,
-            backgroundColor: 'rgba(255,195,39,0.35)',
+            backgroundColor: gradient,
             borderColor: '#ffc327',
-            borderWidth: 2,
-            borderRadius: 6,
+            borderWidth: 3,
+            pointBackgroundColor: '#ffffff',
+            pointBorderColor: '#ffc327',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            fill: true,
+            tension: 0.4
         }]
     },
     options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
         plugins: {
             legend: { display: false },
             tooltip: {
+                backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                titleFont: { size: 13, family: "'Plus Jakarta Sans', sans-serif" },
+                bodyFont: { size: 14, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
+                padding: 12,
+                cornerRadius: 8,
+                displayColors: false,
                 callbacks: {
                     label: ctx => 'Rp ' + Number(ctx.raw).toLocaleString('id-ID')
                 }
             }
         },
         scales: {
+            x: {
+                grid: { display: false },
+                border: { display: false },
+                ticks: { font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 }, color: '#64748b' }
+            },
             y: {
                 beginAtZero: true,
+                border: { dash: [5, 5], display: false },
+                grid: { color: '#f1f5f9' },
                 ticks: {
-                    callback: v => 'Rp ' + (v/1000).toLocaleString('id-ID') + 'k'
+                    font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },
+                    color: '#64748b',
+                    callback: v => 'Rp ' + (v/1000).toLocaleString('id-ID') + 'k',
+                    maxTicksLimit: 6
                 }
             }
         }
